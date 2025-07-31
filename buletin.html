@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buletin - BMKG Karimun</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Tambahan Khusus Halaman Ini */
+        .buletin-body {
+            background: var(--gray);
+            padding-top: 100px; /* Jarak dari atas untuk header */
+        }
+        .buletin-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            animation: fadeIn 0.8s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .buletin-container h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 30px; }
+        .buletin-container .content-body img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .back-link { display: inline-block; margin-top: 40px; color: var(--navy); text-decoration: none; font-weight: 600; padding: 10px 20px; border: 2px solid var(--navy-light); border-radius: 50px; transition: all 0.3s ease; }
+        .back-link:hover { background: var(--navy-light); color: var(--white); }
+        nav.scrolled { box-shadow: 0 5px 20px rgba(0,0,0,0.1); } /* Pastikan header punya shadow */
+    </style>
+</head>
+<body class="buletin-body">
+
+    <nav id="navbar" class="scrolled">
+        <div class="nav-container">
+            <a href="index.html#beranda" class="logo">
+                <img src="https://i.postimg.cc/j266PjJP/Logo-BMKG-2010-2.png" alt="BMKG Logo">
+                <div class="logo-text"><h2>BMKG Karimun</h2></div>
+            </a>
+            <a href="index.html#buletin" style="color:white; text-decoration: none; font-weight: 500;">Kembali ke Daftar Buletin</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="buletin-container" id="buletin-content-wrapper">
+            <h1>Memuat buletin...</h1>
+        </div>
+    </main>
+
+    <footer id="kontak">
+        <div class="footer-container" id="footer-container"></div>
+        <div class="copyright"><p>© 2025 Stasiun Meteorologi Raja Haji Abdullah Karimun. All Rights Reserved.</p></div>
+    </footer>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Logika untuk menampilkan buletin
+            const urlParams = new URLSearchParams(window.location.search);
+            const buletinId = parseInt(urlParams.get('id'));
+            const buletinData = bmkgData.find(item => item.id === buletinId);
+            const container = document.getElementById('buletin-content-wrapper');
+
+            if (buletinData) {
+                document.title = buletinData.title.rendered + " - BMKG Karimun";
+                container.innerHTML = `
+                    <h1>${buletinData.title.rendered}</h1>
+                    <div class="content-body">${buletinData.content.rendered}</div>
+                    <a href="index.html#buletin" class="back-link">← Kembali ke Daftar Buletin</a>
+                `;
+            } else {
+                container.innerHTML = '<h1>Buletin tidak ditemukan.</h1><a href="index.html#buletin" class="back-link">← Kembali</a>';
+            }
+            
+            // Logika untuk mengisi footer
+            const footerContainer = document.getElementById('footer-container');
+            if (footerContainer) {
+                 footerContainer.innerHTML = `
+                    <div class="footer-col"><h3>Hubungi Kami</h3><ul><li><i class="fas fa-map-marker-alt"></i><div>Bandara Raja Haji Abdullah, Jl. Mayjen Sutoyo Km.12, Tanjung Balai, Karimun</div></li><li><i class="fas fa-phone"></i><div>0777-324320</div></li><li><i class="fas fa-envelope"></i><div>meteo.tbk@gmail.com</div></li></ul></div>
+                    <div class="footer-col"><h3>Jam Operasional</h3><ul><li>Senin - Jumat: 08:00 - 16:00</li><li>Layanan 24 Jam untuk Informasi Cuaca</li></ul><h3 style="margin-top:20px;">Media Sosial</h3><div class="social-icons" style="justify-content: flex-start;"><a href="https://instagram.com/bmkgkarimun" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="https://web.facebook.com/bmkgkarimun" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a><a href="https://twitter.com/bmkgkarimun" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a><a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a></div></div>
+                    <div class="footer-col"><h3>Link Terkait</h3><ul><li><a href="https://www.bmkg.go.id" target="_blank">BMKG Pusat</a></li><li><a href="https://stmkg.ac.id" target="_blank">STMKG</a></li><li><a href="https://dataonline.bmkg.go.id" target="_blank">Data Online BMKG</a></li><li><a href="https://signature.bmkg.go.id" target="_blank">Verifikasi Dokumen</a></li></ul></div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
