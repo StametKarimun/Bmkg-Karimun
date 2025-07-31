@@ -1,0 +1,2752 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMKG Karimun - Stasiun Meteorologi Raja Haji Abdullah</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --navy: #0a2351;
+            --navy-light: #1e3a5f;
+            --green: #00b894;
+            --green-light: #00d2a0;
+            --gold: #f9ca24;
+            --gold-light: #ffda79;
+            --white: #ffffff;
+            --gray: #f5f6fa;
+            --dark: #2c3e50;
+            --glass: rgba(255, 255, 255, 0.1);
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            background: var(--gray);
+            position: relative;
+        }
+        
+        /* Animated Background with Moving Waves */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #e3f2fd 0%, #f3e5f5 25%, #e8f5e9 50%, #fff3e0 75%, #e3f2fd 100%);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            z-index: -3;
+            opacity: 0.3;
+        }
+        
+        /* Moving Wave Effect */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(10, 35, 81, 0.03) 50%, transparent 100%);
+            animation: waveMove 20s linear infinite;
+            z-index: -2;
+        }
+        
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes waveMove {
+            0% { transform: rotate(0deg) translateY(0); }
+            100% { transform: rotate(360deg) translateY(-100px); }
+        }
+        
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(10, 35, 81, 0.05);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) scale(0.5);
+                opacity: 0;
+            }
+        }
+        
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Loading Animation */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--navy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0s 0.5s;
+        }
+        
+        .loader img {
+            width: 120px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Header with Slideshow */
+        .hero-header {
+            position: relative;
+            height: 100vh;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .slideshow-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            transform: scale(1.1);
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 1.5s ease-in-out, transform 8s linear;
+        }
+        
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 35, 81, 0.7);
+            z-index: 2;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 3;
+            animation: fadeInDown 1s ease-out;
+            background: rgba(10, 35, 81, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-logo {
+            width: 150px;
+            margin: 0 auto 20px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        /* Logo shimmer effect */
+        .header-logo::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.7) 50%,
+                transparent 60%
+            );
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%) translateY(-100%);
+            }
+            100% {
+                transform: translateX(100%) translateY(100%);
+            }
+        }
+        
+        .header-content h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header-content p {
+            font-size: 1.3rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+        
+        /* Header Clock Display */
+        .header-clock {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .header-time-zone {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .header-time-zone:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .header-time-zone .zone-name {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            font-weight: 500;
+            color: var(--gold);
+        }
+        
+        .header-time-zone .zone-time {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--white);
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: transparent;
+            z-index: 1000;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        nav.scrolled {
+            background: rgba(10, 35, 81, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--white);
+            text-decoration: none;
+        }
+        
+        .logo img {
+            width: 40px;
+        }
+        
+        .logo-text h2 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        /* Real-time Clock */
+        .time-display {
+            display: flex;
+            gap: 20px;
+            color: var(--white);
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .time-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+        
+        .time-zone .zone-name {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+        
+        .time-zone .zone-time {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--navy);
+            min-width: 220px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            list-style: none;
+            padding: 10px 0;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            top: 100%;
+        }
+        
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-menu a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        section {
+            padding: 80px 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--navy);
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold) 0%, var(--green) 100%);
+            border-radius: 2px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: translateX(-50%) scaleX(1);
+            }
+            50% {
+                transform: translateX(-50%) scaleX(1.3);
+            }
+        }
+        
+        .section-header p {
+            color: #666;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* Quick Links */
+        .quick-links {
+            background: var(--navy-light);
+            color: var(--white);
+            padding: 50px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-links::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .quick-links-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            justify-content: center;
+        }
+        
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .quick-links-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .quick-links-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .quick-link-card {
+            background: var(--navy);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--white);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-link-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        
+        .quick-link-card:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .quick-link-card:hover {
+            transform: translateY(-10px);
+            background: var(--navy);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .quick-link-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--gold);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .quick-link-card h3 {
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .quick-link-card p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Profile Section */
+        #profil-stasiun {
+            background: linear-gradient(135deg, #f5f6fa 0%, #e8f5e9 100%);
+            padding: 100px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated gradient waves */
+        #profil-stasiun::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(10, 35, 81, 0.03) 35%, 
+                rgba(10, 35, 81, 0.03) 40%, 
+                transparent 45%
+            );
+            animation: waveFlow 15s linear infinite;
+        }
+        
+        @keyframes waveFlow {
+            0% { transform: rotate(0deg) translateX(-50%); }
+            100% { transform: rotate(360deg) translateX(-50%); }
+        }
+        
+        .profile-card {
+            background: var(--white);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .profile-header-bg {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-header-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: rotate 30s linear infinite;
+        }
+        
+        .profile-header-bg h3 {
+            color: var(--white);
+            font-size: 2rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .profile-header-bg p {
+            color: var(--gold);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .profile-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            padding: 50px;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .profile-info-item {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .profile-info-item i {
+            color: var(--gold);
+            font-size: 24px;
+            min-width: 30px;
+            text-align: center;
+            margin-top: 3px;
+        }
+        
+        .profile-info-text h4 {
+            color: var(--navy);
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .profile-info-text p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .profile-image {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .profile-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* News Section - Sliding Animation */
+        .news-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+            padding: 80px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Floating geometric shapes animation */
+        .news-section::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: -100px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(249, 202, 36, 0.1) 0%, transparent 70%);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: morphShape 15s ease-in-out infinite;
+        }
+        
+        .news-section::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, transparent 70%);
+            border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+            animation: morphShape 20s ease-in-out infinite reverse;
+        }
+        
+        @keyframes morphShape {
+            0%, 100% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+                transform: rotate(0deg) scale(1);
+            }
+            25% {
+                border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+                transform: rotate(90deg) scale(1.1);
+            }
+            50% {
+                border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+                transform: rotate(180deg) scale(0.9);
+            }
+            75% {
+                border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+                transform: rotate(270deg) scale(1.05);
+            }
+        }
+        
+        .news-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 5%;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .news-slider {
+            position: relative;
+            overflow: hidden;
+            margin: 50px 0;
+        }
+        
+        .news-track {
+            display: flex;
+            animation: slideLeft 30s linear infinite;
+            gap: 30px;
+        }
+        
+        .news-track:hover {
+            animation-play-state: paused;
+        }
+        
+        @keyframes slideLeft {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        
+        .news-card {
+            min-width: 400px;
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .news-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .news-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .news-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .news-card:hover .news-image img {
+            transform: scale(1.1);
+        }
+        
+        .news-date {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gold);
+            color: var(--navy);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .news-content {
+            padding: 25px;
+        }
+        
+        .news-content h3 {
+            color: var(--navy);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .news-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        /* Featured News - Center */
+        .featured-news {
+            background: linear-gradient(135deg, #f5f6fa 0%, #fff 50%, #e8f5e9 100%);
+            padding: 80px 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated gradient orbs */
+        .featured-news::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: -200px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(10, 35, 81, 0.08) 0%, transparent 70%);
+            animation: floatOrb 25s ease-in-out infinite;
+        }
+        
+        .featured-news::after {
+            content: '';
+            position: absolute;
+            bottom: -150px;
+            right: -150px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(249, 202, 36, 0.08) 0%, transparent 70%);
+            animation: floatOrb 20s ease-in-out infinite reverse;
+        }
+        
+        @keyframes floatOrb {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(50px, -30px) scale(1.1);
+            }
+            50% {
+                transform: translate(-30px, 50px) scale(0.9);
+            }
+            75% {
+                transform: translate(30px, 30px) scale(1.05);
+            }
+        }
+        
+        .featured-news-card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            transform: scale(1);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .featured-news-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15);
+        }
+        
+        .featured-news-image {
+            height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .featured-news-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .featured-badge {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: var(--gold);
+            color: var(--navy);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+        
+        .featured-news-content {
+            padding: 40px;
+        }
+        
+        .featured-news-content h3 {
+            font-size: 2rem;
+            color: var(--navy);
+            margin-bottom: 20px;
+        }
+        
+        .featured-news-content .meta {
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        /* Info Layanan */
+        #info-layanan {
+            background: linear-gradient(135deg, #eaf0f6 0%, #e3f2fd 50%, #f5f6fa 100%);
+            padding: 80px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated wave pattern */
+        #info-layanan::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.3" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+            animation: wave 10s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-1440px); }
+        }
+        
+        .info-layanan-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .map-section {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+        
+        .map-section h2 {
+            text-align: center;
+            color: var(--navy);
+            margin-bottom: 20px;
+        }
+        
+        #weatherMap {
+            height: 500px;
+            border-radius: 10px;
+        }
+        
+        .sidebar-col {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .sidebar-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .sidebar-card h3 {
+            color: var(--navy);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-card h3 i {
+            color: var(--gold);
+        }
+        
+        .sidebar-card img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        
+        .instagram-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .instagram-grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .instagram-grid img:hover {
+            transform: scale(1.05);
+        }
+        
+        .instagram-follow {
+            display: block;
+            text-align: center;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: var(--white);
+            padding: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .instagram-follow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Layanan Kami - Updated Grid */
+        #layanan-kami {
+            background: linear-gradient(135deg, #f5f6fa 0%, #e8f5e9 100%);
+            padding: 80px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated background shapes */
+        #layanan-kami::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(0, 184, 148, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(249, 202, 36, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(10, 35, 81, 0.05) 0%, transparent 50%);
+            animation: floatBackground 20s ease-in-out infinite;
+        }
+        
+        @keyframes floatBackground {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(30px, -30px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            justify-items: center;
+        }
+        
+        @media (max-width: 992px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 35px 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top: 5px solid var(--navy);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(249, 202, 36, 0.15) 0%, transparent 60%);
+            transition: all 0.6s ease;
+            transform: scale(0);
+            opacity: 0;
+        }
+        
+        .feature-card:hover::before {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-top-color: var(--gold);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .feature-card i {
+            font-size: 3rem;
+            color: var(--navy);
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s ease;
+            display: inline-block;
+        }
+        
+        .feature-card:hover i {
+            transform: rotateY(360deg) scale(1.2);
+            color: var(--gold);
+        }
+        
+        .feature-card h3 {
+            position: relative;
+            z-index: 1;
+            color: var(--navy);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .feature-card p {
+            position: relative;
+            z-index: 1;
+            color: #666;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+        
+        /* Special style for Klaim Asuransi */
+        .feature-card.insurance {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 202, 36, 0.05) 100%);
+            border-top-color: var(--gold);
+        }
+        
+        .feature-card.insurance i {
+            color: var(--gold);
+        }
+        
+        .feature-card.insurance:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 202, 36, 0.1) 100%);
+        }
+        
+        /* Bulletin Section - Complete */
+        .bulletin-section {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f0f4f8 50%, #e3f2fd 100%);
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Floating circles animation */
+        .bulletin-section::before,
+        .bulletin-section::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.05;
+            animation: floatCircle 20s ease-in-out infinite;
+        }
+        
+        .bulletin-section::before {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--navy) 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+        }
+        
+        .bulletin-section::after {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: 10s;
+        }
+        
+        @keyframes floatCircle {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(100px, -50px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-50px, 100px) rotate(240deg);
+            }
+        }
+        
+        .bulletin-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+        
+        .bulletin-scroll {
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .bulletin-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .bulletin-track {
+            display: flex;
+            gap: 30px;
+            padding: 20px;
+        }
+        
+        .bulletin-item {
+            position: relative;
+            min-width: 250px;
+            height: 350px;
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .bulletin-item:hover {
+            transform: translateY(-10px) scale(1.02);
+        }
+        
+        .bulletin-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bulletin-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: var(--white);
+            padding: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .bulletin-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--white);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 5px 20px var(--shadow);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+        
+        .bulletin-nav-btn:hover {
+            background: var(--navy);
+            color: var(--white);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .bulletin-nav-btn.prev {
+            left: -25px;
+        }
+        
+        .bulletin-nav-btn.next {
+            right: -25px;
+        }
+        
+        /* Struktur Organisasi */
+        #struktur {
+            background: linear-gradient(135deg, #fff 0%, #f0f4f8 100%);
+            padding: 80px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated lines background */
+        #struktur::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, rgba(10, 35, 81, 0.03) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(10, 35, 81, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 10s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+        
+        .org-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .org-level {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .org-box {
+            background: var(--gray);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            width: 240px;
+            box-shadow: 0 10px 30px var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .org-box.head {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: var(--white);
+            width: 280px;
+            transform: scale(1.1);
+        }
+        
+        .org-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+        .org-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 15px;
+            border: 5px solid var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .org-photo:hover {
+            transform: scale(1.1);
+        }
+        
+        .org-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .org-position {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .org-name {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .org-box.head .org-name {
+            color: var(--gold);
+        }
+        
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        
+        .lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+        }
+        
+        /* IKM Section */
+        #ikm {
+            text-align: center;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e9 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            padding: 80px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Floating dots animation */
+        #ikm::before,
+        #ikm::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        #ikm::before {
+            background-image: radial-gradient(circle, rgba(10, 35, 81, 0.1) 2px, transparent 2px);
+            background-size: 50px 50px;
+            animation: dotFloat 20s linear infinite;
+        }
+        
+        #ikm::after {
+            background-image: radial-gradient(circle, rgba(249, 202, 36, 0.1) 2px, transparent 2px);
+            background-size: 50px 50px;
+            background-position: 25px 25px;
+            animation: dotFloat 25s linear infinite reverse;
+        }
+        
+        @keyframes dotFloat {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, -50px); }
+        }
+        
+        #ikm iframe {
+            max-width: 800px;
+            width: 100%;
+            height: 100vh;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow);
+            border: 1px solid #ddd;
+            position: relative;
+            z-index: 1;
+            background: white;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: var(--white);
+            border-radius: 20px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #888;
+            z-index: 10;
+        }
+        
+        #modal-body {
+            padding: 40px;
+            overflow-y: auto;
+        }
+        
+        .modal-slider {
+            margin-bottom: 20px;
+            background-color: #f0f2f5;
+            padding: 10px;
+            border-radius: 15px;
+        }
+        
+        .swiper-modal {
+            width: 100%;
+            height: 400px;
+            border-radius: 15px;
+        }
+        
+        .swiper-modal .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .modal-content h2 {
+            color: var(--navy);
+            margin-bottom: 10px;
+        }
+        
+        .modal-content .meta {
+            color: #888;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .article-text-content p,
+        .article-text-content ul li {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: var(--navy);
+            --swiper-navigation-size: 30px;
+        }
+        
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--navy) 0%, #0d2c5f 100%);
+            color: var(--white);
+            padding: 60px 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Footer wave overlay */
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,101.3C1248,107,1344,149,1392,170.7L1440,192L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+            animation: footerWave 15s linear infinite;
+        }
+        
+        @keyframes footerWave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-1440px); }
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: left;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .footer-col h3 {
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+        
+        .footer-col,
+        .footer-col a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+        
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-col ul li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+        
+        .footer-col ul a:hover {
+            color: var(--white);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 40px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .social-icons a {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            transition: all 0.3s;
+            margin: 0 5px;
+        }
+        
+        .social-icons a:hover {
+            background: var(--gold);
+            transform: translateY(-5px);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header-clock {
+                gap: 10px;
+            }
+            
+            .header-time-zone {
+                padding: 8px 15px;
+            }
+            
+            .header-time-zone .zone-time {
+                font-size: 0.95rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .org-box {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .org-box.head {
+                transform: scale(1);
+            }
+            
+            .news-track {
+                animation: none !important;
+            }
+            
+            .news-slider {
+                overflow-x: auto;
+            }
+            
+            .featured-news-card {
+                flex-direction: column;
+            }
+            
+            .featured-news-image {
+                height: 250px;
+            }
+            
+            .section-header h2 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .info-layanan-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .news-card {
+                min-width: 300px;
+            }
+            
+            .timeline-item {
+                flex-direction: column !important;
+                text-align: center !important;
+                margin-bottom: 30px !important;
+            }
+            
+            .timeline-item > div:first-child,
+            .timeline-item > div:last-child {
+                padding: 0 !important;
+                text-align: center !important;
+            }
+            
+            .timeline-line {
+                left: 20px !important;
+            }
+            
+            .timeline-item > div:nth-child(2) {
+                left: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader"><img src="https://i.postimg.cc/j266PjJP/Logo-BMKG-2010-2.png" alt="BMKG Logo"></div>
+    <div class="particles"></div>
+    
+    <header class="hero-header" id="beranda">
+        <div class="slideshow-container" id="slideshow-container"></div>
+        <div class="hero-overlay"></div>
+        <div class="header-content">
+            <img src="https://i.postimg.cc/j266PjJP/Logo-BMKG-2010-2.png" alt="BMKG Logo" class="header-logo">
+            <h1>Stasiun Meteorologi Raja Haji Abdullah</h1>
+            <p>Kabupaten Karimun, Kepulauan Riau</p>
+            
+            <!-- Real-time Clock Display di bawah lokasi -->
+            <div class="header-clock" style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <div class="header-time-zone" style="background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 25px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="zone-name" style="font-size: 0.8rem; opacity: 0.9; font-weight: 500; color: #f9ca24;">WIB</div>
+                    <div class="zone-time" id="header-time-wib" style="font-weight: 600; font-size: 1.1rem; color: #ffffff;">00:00:00</div>
+                </div>
+                <div class="header-time-zone" style="background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 25px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="zone-name" style="font-size: 0.8rem; opacity: 0.9; font-weight: 500; color: #f9ca24;">WITA</div>
+                    <div class="zone-time" id="header-time-wita" style="font-weight: 600; font-size: 1.1rem; color: #ffffff;">00:00:00</div>
+                </div>
+                <div class="header-time-zone" style="background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 25px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="zone-name" style="font-size: 0.8rem; opacity: 0.9; font-weight: 500; color: #f9ca24;">WIT</div>
+                    <div class="zone-time" id="header-time-wit" style="font-weight: 600; font-size: 1.1rem; color: #ffffff;">00:00:00</div>
+                </div>
+                <div class="header-time-zone" style="background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 25px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="zone-name" style="font-size: 0.8rem; opacity: 0.9; font-weight: 500; color: #f9ca24;">UTC</div>
+                    <div class="zone-time" id="header-time-utc" style="font-weight: 600; font-size: 1.1rem; color: #ffffff;">00:00:00</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#beranda" class="logo">
+                <img src="https://i.postimg.cc/j266PjJP/Logo-BMKG-2010-2.png" alt="BMKG Logo">
+                <div class="logo-text">
+                    <h2>BMKG Karimun</h2>
+                </div>
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="#beranda">Beranda</a></li>
+                <li class="dropdown">
+                    <a href="#profil">Profil <i class="fas fa-chevron-down"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#profil-bmkg">Profil BMKG</a></li>
+                        <li><a href="#profil-stasiun">Profil Stasiun</a></li>
+                        <li><a href="#struktur">Struktur Organisasi</a></li>
+                    </ul>
+                </li>
+                <li><a href="https://www.bmkg.go.id/cuaca/prakiraan-cuaca.bmkg?kab=Karimun" target="_blank">Cuaca</a></li>
+                <li><a href="https://maritim.bmkg.go.id/" target="_blank">Cuaca Maritim</a></li>
+                <li><a href="https://web-aviation.bmkg.go.id/" target="_blank">Cuaca Penerbangan</a></li>
+                <li><a href="https://inatews.bmkg.go.id/" target="_blank">Gempa & Tsunami</a></li>
+                <li class="dropdown">
+                    <a href="#layanan">Layanan <i class="fas fa-chevron-down"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#layanan-kami">Layanan Kami</a></li>
+                        <li><a href="#alur-pelayanan">Alur Pelayanan Data</a></li>
+                        <li><a href="https://ptsp.bmkg.go.id/" target="_blank">PTSP Online</a></li>
+                    </ul>
+                </li>
+                <li><a href="https://iklim.bmkg.go.id/id/" target="_blank">Data Iklim</a></li>
+                <li><a href="https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca" target="_blank">Peringatan Dini</a></li>
+                <li><a href="#ikm">IKM</a></li>
+                <li><a href="https://stmkg.ac.id/" target="_blank">STMKG</a></li>
+            </ul>
+            <button class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+    
+    <main>
+        <section class="quick-links">
+            <div class="quick-links-container"></div>
+        </section>
+        
+        <!-- Profile Section -->
+        <section id="profil-stasiun">
+            <div class="section-header">
+                <h2>Profil Stasiun</h2>
+                <p>Stasiun Meteorologi Raja Haji Abdullah Karimun</p>
+            </div>
+            <div class="profile-card">
+                <div class="profile-header-bg">
+                    <h3>Stasiun Meteorologi Raja Haji Abdullah Karimun</h3>
+                    <p>Unit Pelaksana Teknis BMKG</p>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-info">
+                        <div class="profile-info-item">
+                            <i class="fas fa-building"></i>
+                            <div class="profile-info-text">
+                                <h4>Nama Satuan Kerja</h4>
+                                <p>Stasiun Meteorologi Raja Haji Abdullah Karimun</p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-layer-group"></i>
+                            <div class="profile-info-text">
+                                <h4>Klasifikasi</h4>
+                                <p>IV (Empat)</p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-globe"></i>
+                            <div class="profile-info-text">
+                                <h4>Balai Besar Wilayah</h4>
+                                <p>I (Satu) Medan</p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div class="profile-info-text">
+                                <h4>Alamat</h4>
+                                <p>Jl. Mayjen Sutoyo Km.12, Kel. Pamak, Kec. Tebing</p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-compass"></i>
+                            <div class="profile-info-text">
+                                <h4>Koordinat / Elevasi</h4>
+                                <p>1.050879° LU ; 103.392370° BT / 1 m</p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div class="profile-info-text">
+                                <h4>Tahun Operasi</h4>
+                                <p>1995</p>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-tasks"></i>
+                            <div class="profile-info-text">
+                                <h4>Tupoksi Inti</h4>
+                                <p>Mengamati & memprediksi unsur cuaca; layanan data penerbangan, maritim, dan publik; menyebarluaskan peringatan dini cuaca ekstrem di Kab. Karimun</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-image">
+                        <img src="https://i.postimg.cc/4x0FsZrZ/fotoKantor.jpg" alt="Kantor BMKG Karimun">
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Featured News Center -->
+        <section class="featured-news">
+            <div class="section-header">
+                <h2>Berita Utama</h2>
+            </div>
+            <div class="featured-news-card">
+                <div class="featured-news-image">
+                    <img src="https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/3-Copy-e1725866624490.jpg" alt="Featured News">
+                    <div class="featured-badge">Terbaru!</div>
+                </div>
+                <div class="featured-news-content">
+                    <h3>BMKG Karimun Goes To Tulang Island</h3>
+                    <p class="meta">Dipublikasikan pada: 07 September 2024</p>
+                    <p>Sabtu (07/09), BMKG Stasiun Meteorologi Raja Haji Abdullah Kabupaten Karimun, telah menggelar sosialisasi informasi cuaca dengan mengambil tema "PRATA (Pembahasan Ringan Seputar Cuaca) Perhatikan Cuaca Sebelum Melaut" di Balai Pertemuan Nelayan Pulau Tulang. Bersama BASARNAS, para nelayan juga dibekali ilmu penyelamatan diri saat dan sebelum melaut.</p>
+                    <span class="read-more" style="color: var(--navy); cursor: pointer;">Baca Selengkapnya →</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sliding News Section -->
+        <section class="news-section">
+            <div class="section-header">
+                <h2>Informasi Terbaru</h2>
+            </div>
+            <div class="news-container">
+                <div class="news-slider">
+                    <div class="news-track" id="news-track"></div>
+                    <div class="news-track" id="news-track-duplicate"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="info-layanan">
+            <div class="info-layanan-container">
+                <div class="map-section">
+                    <h2>Peta Wilayah Operasional</h2>
+                    <div id="weatherMap"></div>
+                </div>
+                <aside class="sidebar-col" id="sidebar-col"></aside>
+            </div>
+        </section>
+        
+        <section id="layanan-kami" class="features">
+            <div class="section-header">
+                <h2>Layanan Kami</h2>
+            </div>
+            <div class="features-grid"></div>
+        </section>
+        
+        <!-- Alur Pelayanan Data Section -->
+        <section id="alur-pelayanan" style="background: linear-gradient(135deg, #e8f5e9 0%, #f5f6fa 100%); padding: 80px 5%; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.05;">
+                <div style="position: absolute; top: 10%; left: 5%; width: 300px; height: 300px; background: radial-gradient(circle, var(--navy) 0%, transparent 70%); border-radius: 50%; animation: float 15s infinite;"></div>
+                <div style="position: absolute; top: 60%; right: 10%; width: 200px; height: 200px; background: radial-gradient(circle, var(--gold) 0%, transparent 70%); border-radius: 50%; animation: float 20s infinite reverse;"></div>
+                <div style="position: absolute; bottom: 20%; left: 30%; width: 250px; height: 250px; background: radial-gradient(circle, var(--green) 0%, transparent 70%); border-radius: 50%; animation: float 18s infinite;"></div>
+            </div>
+            
+            <div class="section-header" style="position: relative; z-index: 1;">
+                <h2>Alur Pelayanan Data</h2>
+                <p>Prosedur pelayanan data meteorologi, klimatologi, dan geofisika</p>
+            </div>
+            
+            <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+                <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); margin-bottom: 30px;">
+                    <h3 style="color: var(--navy); text-align: center; margin-bottom: 30px; font-size: 1.8rem;">
+                        <i class="fas fa-info-circle" style="color: var(--gold); margin-right: 10px;"></i>
+                        Pelayanan Informasi Tarif Rp. 0,- (NOL RUPIAH)
+                    </h3>
+                    <img src="https://i.postimg.cc/TwksWGGc/alurpelayandata.jpg" alt="Alur Pelayanan Data BMKG" style="width: 100%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                </div>
+                
+                <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+                    <h3 style="color: var(--navy); text-align: center; margin-bottom: 30px; font-size: 1.8rem;">
+                        <i class="fas fa-money-bill-wave" style="color: var(--gold); margin-right: 10px;"></i>
+                        Pelayanan Informasi Atas PNBP
+                    </h3>
+                    <img src="https://i.postimg.cc/XqpzfhY6/alurpelayandata-2jpg.jpg" alt="Alur Pelayanan Data PNBP BMKG" style="width: 100%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                </div>
+                
+                <div style="margin-top: 40px; text-align: center;">
+                    <a href="https://ptsp.bmkg.go.id/" target="_blank" class="data-button" style="display: inline-block; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--white); padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                        <span style="position: relative; z-index: 1;">
+                            <i class="fas fa-external-link-alt" style="margin-right: 10px;"></i>
+                            Ajukan Permohonan Data Online
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <section id="buletin" class="bulletin-section">
+            <div class="section-header">
+                <h2>Buletin Meteorologi</h2>
+            </div>
+            <div class="bulletin-wrapper">
+                <button class="bulletin-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+                <div class="bulletin-scroll" id="bulletin-scroll">
+                    <div class="bulletin-track" id="bulletin-track"></div>
+                </div>
+                <button class="bulletin-nav-btn next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+        
+        <section id="struktur" class="structure-section">
+            <div class="section-header">
+                <h2>Struktur Organisasi</h2>
+            </div>
+            <div class="org-chart" id="org-chart-container"></div>
+        </section>
+        
+        <!-- Profil BMKG Section -->
+        <section id="profil-bmkg" style="background: linear-gradient(135deg, #f5f6fa 0%, #e3f2fd 100%); padding: 100px 5%; position: relative; overflow: hidden;">
+            <style>
+                /* Animated background particles for Visi Misi section */
+                @keyframes particleFloat {
+                    0%, 100% {
+                        transform: translateY(0) translateX(0);
+                        opacity: 0.3;
+                    }
+                    25% {
+                        transform: translateY(-100px) translateX(50px);
+                        opacity: 0.5;
+                    }
+                    50% {
+                        transform: translateY(-200px) translateX(-50px);
+                        opacity: 0.3;
+                    }
+                    75% {
+                        transform: translateY(-100px) translateX(-100px);
+                        opacity: 0.5;
+                    }
+                }
+                
+                #profil-bmkg::before {
+                    content: '';
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background-image: 
+                        radial-gradient(circle at 10% 20%, rgba(10, 35, 81, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(249, 202, 36, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, rgba(0, 184, 148, 0.05) 0%, transparent 50%);
+                    animation: particleFloat 20s ease-in-out infinite;
+                }
+            </style>
+            
+            <div class="section-header">
+                <h2>Profil BMKG</h2>
+                <p>Badan Meteorologi, Klimatologi, dan Geofisika</p>
+            </div>
+            
+            <!-- Hero Image BMKG -->
+            <div style="max-width: 1200px; margin: 0 auto 80px; text-align: center;">
+                <img src="https://i.postimg.cc/jq1Rf4kb/Gedunng-BMKGPusat.jpg" alt="Gedung BMKG Pusat" style="width: 100%; max-width: 800px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 1s ease;">
+            </div>
+            
+            <!-- Tentang BMKG -->
+            <div style="max-width: 1400px; margin: 0 auto; position: relative; z-index: 1;">
+                <div style="background: var(--white); border-radius: 30px; padding: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); margin-bottom: 50px;">
+                    <h3 style="color: var(--navy); font-size: 2rem; margin-bottom: 30px; text-align: center;">Tentang BMKG</h3>
+                    <p style="text-align: center; color: #666; line-height: 1.8; font-size: 1.1rem;">
+                        Badan Meteorologi, Klimatologi, dan Geofisika (BMKG) adalah Lembaga Pemerintah Non Departemen yang bertugas melaksanakan tugas pemerintahan di bidang meteorologi, klimatologi, dan geofisika sesuai dengan ketentuan perundang-undangan yang berlaku.
+                    </p>
+                </div>
+                
+                <!-- Timeline Sejarah -->
+                <div style="background: var(--white); border-radius: 30px; padding: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); margin-bottom: 50px;">
+                    <h3 style="color: var(--navy); font-size: 2rem; margin-bottom: 40px; text-align: center;">Sejarah BMKG</h3>
+                    <div class="timeline" style="position: relative; padding: 20px 0;">
+                        <div class="timeline-line" style="position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--gold) 0%, var(--green) 100%); transform: translateX(-50%);"></div>
+                        
+                        <div class="timeline-item" style="display: flex; align-items: center; margin-bottom: 50px; position: relative;">
+                            <div style="flex: 1; text-align: right; padding-right: 50px;">
+                                <h4 style="color: var(--navy); font-size: 1.5rem;">1841</h4>
+                                <h5 style="color: var(--gold); margin-bottom: 10px;">Pengamatan Pertama</h5>
+                                <p style="color: #666; line-height: 1.6;">Pengamatan meteorologi dan geofisika pertama dimulai oleh Dr. Onnen, Kepala Rumah Sakit di Bogor.</p>
+                            </div>
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--gold); border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1;"></div>
+                            <div style="flex: 1; padding-left: 50px;"></div>
+                        </div>
+                        
+                        <div class="timeline-item" style="display: flex; align-items: center; margin-bottom: 50px; position: relative;">
+                            <div style="flex: 1; padding-right: 50px;"></div>
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--gold); border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1;"></div>
+                            <div style="flex: 1; text-align: left; padding-left: 50px;">
+                                <h4 style="color: var(--navy); font-size: 1.5rem;">1866</h4>
+                                <h5 style="color: var(--gold); margin-bottom: 10px;">Magnetisch en Meteorologisch Observatorium</h5>
+                                <p style="color: #666; line-height: 1.6;">Diresmikan menjadi instansi pemerintah oleh Pemerintah Hindia Belanda, dipimpin oleh Dr. Pieter Adriaan Bergsma.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item" style="display: flex; align-items: center; margin-bottom: 50px; position: relative;">
+                            <div style="flex: 1; text-align: right; padding-right: 50px;">
+                                <h4 style="color: var(--navy); font-size: 1.5rem;">1947</h4>
+                                <h5 style="color: var(--gold); margin-bottom: 10px;">Era Kemerdekaan</h5>
+                                <p style="color: #666; line-height: 1.6;">21 Juli 1947 dijadikan sebagai hari meteorologi, klimatologi, dan geofisika yang diperingati setiap tahun.</p>
+                            </div>
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--gold); border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1;"></div>
+                            <div style="flex: 1; padding-left: 50px;"></div>
+                        </div>
+                        
+                        <div class="timeline-item" style="display: flex; align-items: center; margin-bottom: 50px; position: relative;">
+                            <div style="flex: 1; padding-right: 50px;"></div>
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--gold); border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1;"></div>
+                            <div style="flex: 1; text-align: left; padding-left: 50px;">
+                                <h4 style="color: var(--navy); font-size: 1.5rem;">1950</h4>
+                                <h5 style="color: var(--gold); margin-bottom: 10px;">Anggota WMO</h5>
+                                <p style="color: #666; line-height: 1.6;">Indonesia resmi menjadi anggota World Meteorological Organization (WMO).</p>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item" style="display: flex; align-items: center; margin-bottom: 50px; position: relative;">
+                            <div style="flex: 1; text-align: right; padding-right: 50px;">
+                                <h4 style="color: var(--navy); font-size: 1.5rem;">1980</h4>
+                                <h5 style="color: var(--gold); margin-bottom: 10px;">Badan Meteorologi dan Geofisika</h5>
+                                <p style="color: #666; line-height: 1.6;">Status dinaikkan menjadi instansi setingkat eselon I dengan nama BMG.</p>
+                            </div>
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--gold); border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1;"></div>
+                            <div style="flex: 1; padding-left: 50px;"></div>
+                        </div>
+                        
+                        <div class="timeline-item" style="display: flex; align-items: center; position: relative;">
+                            <div style="flex: 1; padding-right: 50px;"></div>
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--green); border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1;"></div>
+                            <div style="flex: 1; text-align: left; padding-left: 50px;">
+                                <h4 style="color: var(--navy); font-size: 1.5rem;">2008</h4>
+                                <h5 style="color: var(--green); margin-bottom: 10px;">BMKG Modern</h5>
+                                <p style="color: #666; line-height: 1.6;">Berganti nama menjadi Badan Meteorologi, Klimatologi, dan Geofisika (BMKG) sebagai LPND.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tugas dan Fungsi -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 50px;">
+                    <div style="background: var(--white); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <i class="fas fa-tasks" style="font-size: 3rem; color: var(--gold);"></i>
+                        </div>
+                        <h3 style="color: var(--navy); text-align: center; margin-bottom: 20px;">Tugas</h3>
+                        <p style="color: #666; line-height: 1.8; text-align: center;">
+                            BMKG mempunyai tugas melaksanakan tugas pemerintahan di bidang penyelenggaraan meteorologi, klimatologi, dan geofisika.
+                        </p>
+                    </div>
+                    
+                    <div style="background: var(--white); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <i class="fas fa-cogs" style="font-size: 3rem; color: var(--gold);"></i>
+                        </div>
+                        <h3 style="color: var(--navy); text-align: center; margin-bottom: 20px;">Fungsi</h3>
+                        <ul style="color: #666; line-height: 1.8; list-style: none; padding: 0;">
+                            <li style="margin-bottom: 10px; padding-left: 25px; position: relative;">
+                                <i class="fas fa-check-circle" style="position: absolute; left: 0; color: var(--green);"></i>
+                                Perumusan kebijakan teknis bidang MKG
+                            </li>
+                            <li style="margin-bottom: 10px; padding-left: 25px; position: relative;">
+                                <i class="fas fa-check-circle" style="position: absolute; left: 0; color: var(--green);"></i>
+                                Pelaksanaan pengamatan dan pelayanan
+                            </li>
+                            <li style="margin-bottom: 10px; padding-left: 25px; position: relative;">
+                                <i class="fas fa-check-circle" style="position: absolute; left: 0; color: var(--green);"></i>
+                                Koordinasi dan kerja sama internasional
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Visi Misi - Fixed -->
+                <div style="background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); border-radius: 30px; padding: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); margin-bottom: 50px; color: var(--white); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(249, 202, 36, 0.05) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(0, 184, 148, 0.05) 0%, transparent 50%); opacity: 0.5;"></div>
+                    
+                    <h3 style="text-align: center; font-size: 2rem; margin-bottom: 40px; position: relative; z-index: 1;">Visi & Misi</h3>
+                    
+                    <div style="margin-bottom: 40px; position: relative; z-index: 1;">
+                        <h4 style="color: var(--gold); margin-bottom: 20px; font-size: 1.5rem;"><i class="fas fa-eye"></i> Visi</h4>
+                        <p style="line-height: 1.8; font-size: 1.1rem;">
+                            BMKG yang berkelas dunia dengan spirit socioentrepreneur untuk mewujudkan Indonesia Maju yang Berdaulat, Mandiri, dan berkepribadian berlandaskan Gotong-Royong
+                        </p>
+                    </div>
+                    
+                    <div style="position: relative; z-index: 1;">
+                        <h4 style="color: var(--gold); margin-bottom: 20px; font-size: 1.5rem;"><i class="fas fa-bullseye"></i> Misi</h4>
+                        <ol style="line-height: 1.8; padding-left: 20px;">
+                            <li style="margin-bottom: 15px;">Menjadikan informasi BMKG sebagai rujukan masyarakat internasional dan mewujudkan Regional Modelling Centre.</li>
+                            <li style="margin-bottom: 15px;">Mendorong SDM BMKG berperan aktif dalam organisasi MKG Internasional.</li>
+                            <li>Mewujudkan sebagian unit layanan jasa dan informasi BMKG menjadi unit Badan Layanan Umum (BLU).</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <!-- Filosofi Logo -->
+                <div style="background: var(--white); border-radius: 30px; padding: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+                    <h3 style="color: var(--navy); font-size: 2rem; margin-bottom: 40px; text-align: center;">Filosofi Logo BMKG</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 50px; align-items: center;">
+                        <div style="text-align: center;">
+                            <img src="https://i.postimg.cc/j266PjJP/Logo-BMKG-2010-2.png" alt="Logo BMKG" style="width: 100%; max-width: 250px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: var(--navy); margin-bottom: 20px;">Makna Bentuk</h4>
+                            <ul style="color: #666; line-height: 1.8; list-style: none; padding: 0; margin-bottom: 30px;">
+                                <li style="margin-bottom: 10px;"><strong>Lingkaran:</strong> BMKG sebagai institusi yang dinamis</li>
+                                <li style="margin-bottom: 10px;"><strong>5 garis atas:</strong> Melambangkan Pancasila</li>
+                                <li style="margin-bottom: 10px;"><strong>9 garis bawah:</strong> Hasil maksimal yang diharapkan</li>
+                                <li style="margin-bottom: 10px;"><strong>Awan putih:</strong> Meteorologi</li>
+                                <li style="margin-bottom: 10px;"><strong>Bidang biru bergaris:</strong> Klimatologi</li>
+                                <li style="margin-bottom: 10px;"><strong>Bidang hijau bergaris patah:</strong> Geofisika</li>
+                                <li><strong>Garis melintang:</strong> Garis khatulistiwa</li>
+                            </ul>
+                            
+                            <h4 style="color: var(--navy); margin-bottom: 20px;">Makna Warna</h4>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; background: #0000CD; border-radius: 50%;"></div>
+                                    <span style="color: #666;">Biru: Keagungan/Ketakwaan</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; background: #FFFFFF; border: 2px solid #ddd; border-radius: 50%;"></div>
+                                    <span style="color: #666;">Putih: Keikhlasan/Suci</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; background: #228B22; border-radius: 50%;"></div>
+                                    <span style="color: #666;">Hijau: Kesuburan</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; background: #808080; border-radius: 50%;"></div>
+                                    <span style="color: #666;">Abu-abu: Bebas/Tanpa batas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="ikm">
+            <div class="section-header">
+                <h2>Indeks Kepuasan Masyarakat (IKM)</h2>
+                <p>Partisipasi Anda sangat berarti bagi kami untuk terus meningkatkan kualitas layanan.</p>
+            </div>
+            <iframe loading="lazy" src="https://docs.google.com/forms/d/e/1FAIpQLScX5gejgX-zVpsz9QJzYLMC9UPgYo-sIjqz1CPvrJ95S5FnaA/viewform?embedded=true" frameborder="0">Memuat…</iframe>
+        </section>
+    </main>
+    
+    <footer id="kontak">
+        <div class="footer-container" id="footer-container"></div>
+        <div class="copyright">
+            <p>© 2025 Stasiun Meteorologi Raja Haji Abdullah Karimun. All Rights Reserved.<br>Badan Meteorologi, Klimatologi, dan Geofisika</p>
+        </div>
+    </footer>
+    
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close">×</span>
+        <img class="lightbox-content" id="lightbox-img" alt="Tampilan diperbesar">
+    </div>
+    
+    <div class="modal-overlay" id="article-modal">
+        <div class="modal-content">
+            <span class="modal-close">×</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loader after everything loads
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    const loader = document.getElementById('loader');
+                    if (loader) loader.classList.add('hidden');
+                }, 1000);
+            });
+            
+            // Create particles
+            const particlesContainer = document.querySelector('.particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 100 + 50 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 20 + 20) + 's';
+                particlesContainer.appendChild(particle);
+            }
+            
+            // Real-time Clock Function
+            function updateClocks() {
+                const now = new Date();
+                
+                // Get current UTC time
+                const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+                
+                // WIB (UTC+7)
+                const wibTime = new Date(utcTime + (7 * 60 * 60 * 1000));
+                document.getElementById('header-time-wib').textContent = wibTime.toTimeString().split(' ')[0];
+                
+                // WITA (UTC+8)
+                const witaTime = new Date(utcTime + (8 * 60 * 60 * 1000));
+                document.getElementById('header-time-wita').textContent = witaTime.toTimeString().split(' ')[0];
+                
+                // WIT (UTC+9)
+                const witTime = new Date(utcTime + (9 * 60 * 60 * 1000));
+                document.getElementById('header-time-wit').textContent = witTime.toTimeString().split(' ')[0];
+                
+                // UTC
+                const utcTimeDisplay = new Date(utcTime);
+                document.getElementById('header-time-utc').textContent = utcTimeDisplay.toTimeString().split(' ')[0];
+            }
+            
+            // Update clocks every second
+            setInterval(updateClocks, 1000);
+            updateClocks(); // Initial call
+            
+            const bmkgData = [
+              {"id":1438,"date":"2025-06-11T11:02:34","link":"#","title":{"rendered":"Buletin Meteorologi Edisi 082"}, "content": {"rendered": "<p>Analisis unsur meteorologi / klimatologi Bulan Juni 2025 untuk wilayah Tanjung Balai Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/06/BULETIN-JUNI-2025_opt_001.jpg'>"},"yoast_head_json":{"description":"Pada edisi Ke-82 Buletin Meteorologi bulan Juni 2025...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/06/BULETIN-JUNI-2025_opt_001.jpg"}],"article_published_time":"2025-06-11T04:02:34+00:00"},"categories":[5]},
+              {"id":1128,"date":"2025-05-07T15:32:43","link":"#","title":{"rendered":"Buletin Meteorologi Edisi 081"}, "content": {"rendered": "<p>Analisis unsur meteorologi / klimatologi Bulan Mei 2025 untuk wilayah Tanjung Balai Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/05/BULETIN-MEI-2025_11zon_001.jpg'>"},"yoast_head_json":{"description":"Pada edisi Ke-81 Buletin Meteorologi bulan Mei 2025...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/05/BULETIN-MEI-2025_11zon_001.jpg"}],"article_published_time":"2025-05-07T08:32:43+00:00"},"categories":[5]},
+              {"id":1107,"date":"2024-11-15T11:23:02","link":"#","title":{"rendered":"Buletin Meteorologi Edisi 075"}, "content": {"rendered": "<p>Analisis unsur meteorologi / klimatologi Bulan Oktober 2024 untuk wilayah Tanjung Balai Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/11/Screenshot-2024-11-15-111530.jpg'>"},"yoast_head_json":{"description":"Pada edisi Ke–75 Buletin Meteorologi bulan November 2024...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/11/Screenshot-2024-11-15-111530.jpg"}],"article_published_time":"2024-11-15T04:23:02+00:00"},"categories":[5]},
+              {"id":1050,"date":"2024-09-07T14:23:00","link":"#","title":{"rendered":"BMKG Karimun Goes To Tulang Island"}, "content": {"rendered": "<p>Sabtu (07/09), BMKG Stasiun Meteorologi Raja Haji Abdullah Kabupaten Karimun, telah menggelar sosialisasi informasi cuaca dengan mengambil tema \" PRATA ( Pembahasan Ringan Seputar Cuaca ) Perhatikan Cuaca Sebelum Melaut\" di Balai Pertemuan Nelayan Pulau Tulang. Bersama BASARNAS, para nelayan juga dibekali ilmu penyelamatan diri saat dan sebelum melaut.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/1-1024x1024.jpg'><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/2-1024x1024.jpg'>"}, "yoast_head_json":{"description":"Sabtu (07/09), BMKG menggelar sosialisasi informasi cuaca di Pulau Tulang...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/3-Copy-e1725866624490.jpg"}],"article_published_time":"2024-09-07T07:23:00+00:00"},"categories":[7,4]},
+              {"id":1036,"date":"2024-08-21T15:34:25","link":"#","title":{"rendered":"\"PRATA\" Bincang – bincang Dengan Komunitas Petani"}, "content": {"rendered": "<p>Rabu (21/08), Kantor Stasiun Meteorologi Kelas IV Raja Haji Abdullah – Tanjung Balai Karimun sukses melaksanakan Diseminasi Informasi Cuaca yang bertajuk \"Informasi Cuaca di Bidang Pertanian\". Acara ini diselenggarakan dengan tujuan agar masyarakat lebih teredukasi mengenai jenis tanaman yang tepat sesuai dengan cuaca yang sedang terjadi.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/8-1-1024x1024.jpg'>"}, "yoast_head_json":{"description":"Rabu (21/08), Kantor Stasiun Meteorologi sukses melaksanakan Diseminasi Informasi Cuaca di Bidang Pertanian...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/8-Copy-e1724229656543.jpg"}],"article_published_time":"2024-08-21T08:34:25+00:00"},"categories":[7,4,1]},
+              {"id":1014,"date":"2024-08-17T10:28:00","link":"#","title":{"rendered":"Upacara HUT RI ke – 79, BMKG Karimun dan UPBU"}, "content": {"rendered": "<p>Sabtu (17/08), Dalam rangka memperingati HUT RI ke – 79, BMKG Karimun dan UPBU Raja Haji Abdullah mengadakan upacara yang di gelar di halaman parkir Bandara Raja Haji Abdullah.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/1-768x768.jpg'><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/2-768x768.jpg'>"}, "yoast_head_json":{"description":"Sabtu (17/08), Dalam rangka memperingati HUT RI ke – 79, BMKG Karimun dan UPBU mengadakan upacara...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/17-e1724035075329.jpg"}],"article_published_time":"2024-08-17T03:28:00+00:00"},"categories":[7,4]},
+              {"id":955,"date":"2024-07-23T14:02:18","link":"#","title":{"rendered":"\"PRATA\" Cara BMKG Untuk Lebih Dekat Dengan Masyarakat"},"content":{"rendered":"<p>Rabu (14/07), Kantor Stasiun Meteorologi Kelas IV Raja Haji Abdullah – Tanjung Balai Karimun sukses melaksanakan Diseminasi Informasi Cuaca yang bertajuk \"Fenomena Angin Kencang, Puting Beliung dan Waterspout\" pada Rabu 14 Juli 2024.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/07/WhatsApp-Image-2024-07-22-at-09.48.36-2.jpeg'>"}, "yoast_head_json":{"description":"Rabu (14/07), Kantor Stasiun Meteorologi sukses melaksanakan Diseminasi tentang Fenomena Angin Kencang...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/07/WhatsApp-Image-2024-07-22-at-09.48.36-2.jpeg"}],"article_published_time":"2024-07-23T07:02:18+00:00"},"categories":[1]},
+              {"id":735,"date":"2023-03-16T14:40:00","link":"#","title":{"rendered":"Bermain Sambil Belajar Bersama SDS 012 Maitreyawira"},"content":{"rendered":"<p>Karimun, 16 Maret 2023. Tepat pukul 08.30, Stasiun Meteorologi Raja Haji Abdullah (Stamet RHA) kedatangan 40 tamu – tamu lucu dan 4 orang guru pendamping dari SDS 012 Maitreyawira.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/03/DSF6310EDIT.jpg'>"}, "yoast_head_json":{"description":"Karimun, 16 Maret 2023. Stamet RHA kedatangan 40 tamu lucu dari SDS 012 Maitreyawira...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/03/DSF6684edit.jpg"}],"article_published_time":"2023-03-16T07:40:00+00:00"},"categories":[7,4,1]},
+              {"id":636,"date":"2023-02-14T10:07:22","link":"#","title":{"rendered":"Stamet RHA Gelar Pelatihan Komunikasi Publik"},"content":{"rendered":"<p>Karimun, 13 Februari 2023. Untuk meningkatkan kualitas SDM dalam menyampaikan informasi yang mudah dipahami oleh masyarakat, STAMET RHA mengadakan \"Pelatihan Komunikasi Publik dan Media Sosial\".</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/edit-11.jpg'>"}, "yoast_head_json":{"description":"Karimun, 13 Februari 2023. STAMET RHA mengadakan Pelatihan Komunikasi Publik dan Media Sosial...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/EDIT-1.jpg"}],"article_published_time":"2023-02-14T03:07:22+00:00"},"categories":[7,4,1]},
+              {"id":584,"date":"2023-02-08T13:35:02","link":"#","title":{"rendered":"Stamet RHA Terima Kunjungan Universitas Karimun"},"content":{"rendered":"<p>Karimun, 07 Februari 2023. Stasiun Meteorologi Raja Haji Abdullah menerima kunjungan mahasiswa dari jurusan Manajemen Kepelabuhan dan Pelayaran Universitas Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/DSF4682.jpg'>"}, "yoast_head_json":{"description":"Karimun, 07 Februari 2023. Stasiun Meteorologi Raja Haji Abdullah menerima kunjungan mahasiswa...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/DSF4993.jpg"}],"article_published_time":"2023-02-08T06:35:02+00:00"},"categories":[7,4,1]}
+            ];
+            
+            // Additional bulletin data from UIwebBMKGKarimun
+            const additionalBulletins = [
+                {"id":"b4","title":"Buletin Meteorologi Edisi 074","img":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/10/Untitled1_001-300x430.jpg"},
+                {"id":"b5","title":"Buletin Meteorologi Edisi 073","img":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/Screenshot-2024-09-10-103342-300x430.png"}
+            ];
+            
+            function formatDate(dateString) { 
+                if (!dateString) return ''; 
+                return new Date(dateString).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }); 
+            }
+
+            function populateSlideshow() {
+                const container = document.getElementById('slideshow-container');
+                if (!container) return;
+                const images = ["https://i.postimg.cc/c4r4vzy4/Header.png","https://i.postimg.cc/pdncd4Hj/Kegiatan1.jpg","https://i.postimg.cc/bJcCSgyB/Kegiatan2.jpg","https://i.postimg.cc/vBrPrnDH/Kegiatan3.jpg"];
+                container.innerHTML = images.map((src, i) => `<div class="slide ${i === 0 ? 'active' : ''}"><img src="${src}" alt="Slide ${i+1}"></div>`).join('');
+                let currentSlide = 0;
+                const slides = document.querySelectorAll('.slide');
+                setInterval(() => {
+                    slides[currentSlide].classList.remove('active');
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    slides[currentSlide].classList.add('active');
+                }, 5000);
+            }
+            
+            function initNav() {
+                const nav = document.getElementById('navbar');
+                window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+            }
+
+            function populateQuickLinks() {
+                const container = document.querySelector('.quick-links-container');
+                if (!container) return;
+                const links = [
+                    { icon: 'fa-cloud-sun-rain', title: 'Prakiraan Cuaca', text: 'Informasi cuaca terkini Kabupaten Karimun', url: 'https://www.bmkg.go.id/cuaca/prakiraan-cuaca.bmkg?kab=Karimun' },
+                    { icon: 'fa-ship', title: 'Cuaca Maritim', text: 'Informasi cuaca untuk pelayaran', url: 'https://maritim.bmkg.go.id/' },
+                    { icon: 'fa-plane-departure', title: 'Cuaca Penerbangan', text: 'Informasi cuaca untuk penerbangan', url: 'https://web-aviation.bmkg.go.id/' },
+                    { icon: 'fa-exclamation-triangle', title: 'Peringatan Dini', text: 'Informasi peringatan dini cuaca ekstrem', url: 'https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca' },
+                    { icon: 'fa-water', title: 'Gempa & Tsunami', text: 'Informasi gempa dan tsunami terkini', url: 'https://inatews.bmkg.go.id/' },
+                    { icon: 'fa-temperature-high', title: 'Data Iklim', text: 'Analisis data iklim historis', url: 'https://iklim.bmkg.go.id/id/' }
+                ];
+                container.innerHTML = links.map(link => `
+                    <a href="${link.url}" target="_blank" class="quick-link-card">
+                        <i class="fas ${link.icon}"></i><h3>${link.title}</h3><p>${link.text}</p>
+                    </a>`).join('');
+            }
+            
+            function populateLayanan() {
+                const container = document.querySelector('.features-grid');
+                if (!container) return;
+                const services = [
+                    { icon: 'fa-chart-line', title: 'Prakiraan Cuaca', text: 'Informasi prakiraan cuaca harian dan mingguan yang akurat untuk wilayah Karimun.' },
+                    { icon: 'fa-satellite', title: 'Citra Satelit', text: 'Pantauan real-time kondisi atmosfer melalui satelit Himawari terkini.' },
+                    { icon: 'fa-broadcast-tower', title: 'Radar Cuaca', text: 'Monitoring cuaca untuk deteksi dini cuaca ekstrem di wilayah operasional.' },
+                    { icon: 'fa-exclamation-triangle', title: 'Peringatan Dini', text: 'Informasi peringatan dini cuaca ekstrem untuk keselamatan masyarakat.' },
+                    { icon: 'fa-temperature-high', title: 'Data Iklim', text: 'Analisis data iklim historis dan tren perubahan iklim regional.' },
+                    { icon: 'fa-shield-alt', title: 'Klaim Asuransi', text: 'Layanan surat keterangan cuaca untuk keperluan klaim asuransi bencana alam.', special: 'insurance' }
+                ];
+                container.innerHTML = services.map(s => `
+                    <div class="feature-card ${s.special || ''}">
+                        <i class="fas ${s.icon}"></i><h3>${s.title}</h3><p>${s.text}</p>
+                    </div>`).join('');
+            }
+
+            function populateSidebar() {
+                const container = document.getElementById('sidebar-col');
+                if (!container) return;
+                container.innerHTML = `
+                    <div class="sidebar-card"><h3><i class="fas fa-satellite"></i> Citra Satelit</h3><img src="https://inderaja.bmkg.go.id/IMAGE/HIMA/H08_EH_Kepri.png" alt="Citra Satelit" loading="lazy"></div>
+                    <div class="sidebar-card"><h3><i class="fas fa-broadcast-tower"></i> Citra Radar</h3><img src="https://inderaja.bmkg.go.id/Radar/BATA_SingleLayerCRefQC.png" alt="Citra Radar" loading="lazy"></div>
+                    <div class="sidebar-card"><h3><i class="fab fa-instagram"></i> Instagram @bmkgkarimun</h3><div class="instagram-grid"><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/HnKvbZKG/Tumbh-IG1.jpg" alt="IG Post 1" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/D0mYJkxd/Tumbh-IG2.jpg" alt="IG Post 2" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/SQtP0RKZ/Tumbh-IG3.jpg" alt="IG Post 3" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/RV6Dvm6v/Tumbh-IG4.jpg" alt="IG Post 4" loading="lazy"></a></div><a href="https://instagram.com/bmkgkarimun" target="_blank" class="instagram-follow"><i class="fab fa-instagram"></i> Follow @bmkgkarimun</a></div>
+                `;
+            }
+            
+            function populateFooter() {
+                const container = document.getElementById('footer-container');
+                if (!container) return;
+                container.innerHTML = `
+                    <div class="footer-col"><h3>Hubungi Kami</h3><ul><li><i class="fas fa-map-marker-alt"></i><div>Bandara Raja Haji Abdullah, Jl. Mayjen Sutoyo Km.12, Tanjung Balai, Karimun</div></li><li><i class="fas fa-phone"></i><div>0777-324320</div></li><li><i class="fas fa-envelope"></i><div>meteo.tbk@gmail.com</div></li></ul></div>
+                    <div class="footer-col"><h3>Jam Operasional</h3><ul><li>Senin - Jumat: 08:00 - 16:00</li><li>Layanan 24 Jam untuk Informasi Cuaca</li></ul><h3 style="margin-top:20px;">Media Sosial</h3><div class="social-icons" style="justify-content: flex-start;"><a href="https://instagram.com/bmkgkarimun" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="https://web.facebook.com/bmkgkarimun" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a><a href="https://twitter.com/bmkgkarimun" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a><a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a></div></div>
+                    <div class="footer-col"><h3>Link Terkait</h3><ul><li><a href="https://www.bmkg.go.id" target="_blank">BMKG Pusat</a></li><li><a href="https://stmkg.ac.id" target="_blank">STMKG</a></li><li><a href="https://dataonline.bmkg.go.id" target="_blank">Data Online BMKG</a></li><li><a href="https://signature.bmkg.go.id" target="_blank">Verifikasi Dokumen</a></li></ul></div>
+                `;
+            }
+
+            function populateSlidingNews() {
+                const track = document.getElementById('news-track');
+                const trackDuplicate = document.getElementById('news-track-duplicate');
+                if (!track || !trackDuplicate) return;
+                
+                const articles = bmkgData.filter(item => item.categories && (item.categories.includes(1) || item.categories.includes(4) || item.categories.includes(7))).sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const newsHtml = articles.map(article => `
+                    <div class="news-card">
+                        <div class="news-image">
+                            <img src="${article.yoast_head_json.og_image[0].url}" alt="${article.title.rendered}" loading="lazy">
+                            <div class="news-date">${formatDate(article.yoast_head_json.article_published_time)}</div>
+                        </div>
+                        <div class="news-content">
+                            <h3>${article.title.rendered}</h3>
+                            <p>${article.yoast_head_json.description}</p>
+                            <span class="read-more" data-id="${article.id}">Baca Selengkapnya →</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                track.innerHTML = newsHtml;
+                trackDuplicate.innerHTML = newsHtml;
+                
+                attachModalListeners();
+            }
+
+            function populateBulletins() {
+                const track = document.getElementById('bulletin-track');
+                if (!track) return;
+                
+                const bulletins = bmkgData.filter(item => item.categories && item.categories.includes(5)).sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Add bulletins from original data
+                let bulletinHtml = bulletins.map(b => `
+                    <a href="${b.link}" target="_blank" class="bulletin-item">
+                        <img src="${b.yoast_head_json.og_image[0].url}" alt="${b.title.rendered}" loading="lazy">
+                        <div class="bulletin-label">${b.title.rendered}</div>
+                    </a>
+                `).join('');
+                
+                // Add additional bulletins from UIwebBMKGKarimun
+                bulletinHtml += additionalBulletins.map(b => `
+                    <a href="#" class="bulletin-item">
+                        <img src="${b.img}" alt="${b.title}" loading="lazy">
+                        <div class="bulletin-label">${b.title}</div>
+                    </a>
+                `).join('');
+                
+                track.innerHTML = bulletinHtml;
+            }
+
+            function populateOrgChart() {
+                const container = document.getElementById('org-chart-container');
+                if (!container) return;
+                const staff = [
+                    { pos: 'Kepala Stasiun', name: 'Deny, S.Ikom', img: 'https://i.postimg.cc/rmfQzJ7x/Foto-Pak-Deny.png', type: 'head' },
+                    { pos: 'Ka. Sub. Bagian TU', name: 'Unik Haryanti', img: 'https://i.postimg.cc/Y0VRzSrS/Foto-Kak-Unik.png', type: 'subhead' },
+                    { pos: 'Ka. Kelompok Observasi', name: 'Dea Andita Siregar', img: 'https://i.postimg.cc/Kz85XT4z/Foto-Kak-Dea.png', type: 'subhead' },
+                    { pos: 'Bendahara', name: 'Susilih Kuntarti', img: 'https://i.postimg.cc/9F614zg8/Foto-Kak-Susi.png', type: 'staff' },
+                    { pos: 'Anggota', name: 'Firmansyah', img: 'https://i.postimg.cc/WztSZZPK/Foto-Bg-Firman.png', type: 'staff' },
+                    { pos: 'Observer & Forecaster', name: 'Younggy Hutabarat', img: 'https://i.postimg.cc/Pq4MFyX9/Foto-Bg-Younggy.png', type: 'staff' },
+                    { pos: 'Observer & Forecaster', name: 'Andeliyoela Bianti', img: 'https://i.postimg.cc/59ksVsBM/Foto-Kak-Yola.png', type: 'staff' },
+                    { pos: 'Observer & Forecaster', name: 'Muhammad Sawal', img: 'https://i.postimg.cc/5t133TV8/Foto-Sawal.png', type: 'staff' },
+                    { pos: 'Teknisi', name: 'Hadi Trisna Subekti', img: 'https://i.postimg.cc/DyJBy164/Foto-Bg-Hadi.png', type: 'staff' },
+                    { pos: 'Teknisi', name: 'Putri Haryati Rizki', img: 'https://i.postimg.cc/nhq2qZ6H/Foto-Kak-Putri.png', type: 'staff' }
+                ];
+                let headHtml = '', subheadHtml = '', staffHtml = '';
+                staff.forEach(member => {
+                    const memberHtml = `<div class="org-box ${member.type}"><div class="org-photo enlargeable"><img src="${member.img}" alt="Foto ${member.name}" loading="lazy"></div><div class="org-position">${member.pos}</div><div class="org-name">${member.name}</div></div>`;
+                    if (member.type === 'head') headHtml += memberHtml;
+                    else if (member.type === 'subhead') subheadHtml += memberHtml;
+                    else staffHtml += memberHtml;
+                });
+                container.innerHTML = `<div class="org-level">${headHtml}</div><div class="org-level">${subheadHtml}</div><div class="org-level staff">${staffHtml}</div>`;
+                attachLightboxListeners();
+            }
+
+            function attachModalListeners() {
+                const articleModal = document.getElementById('article-modal'), modalBody = document.getElementById('modal-body');
+                document.querySelectorAll('.read-more').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const articleId = parseInt(e.target.dataset.id), articleData = bmkgData.find(item => item.id === articleId);
+                        if(articleData) {
+                            const parser = new DOMParser(), doc = parser.parseFromString(articleData.content.rendered, 'text/html');
+                            const images = Array.from(doc.querySelectorAll('img')).map(img => img.src);
+                            const imageSliderHtml = images.length > 0 ? `<div class="modal-slider"><div class="swiper swiper-modal"><div class="swiper-wrapper">${images.map(src => `<div class="swiper-slide"><img src="${src}" loading="lazy" alt="Gambar Artikel"></div>`).join('')}</div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div></div></div>` : `<img src="${articleData.yoast_head_json.og_image[0].url}" style="width:100%; border-radius:15px; margin-bottom:20px;">`;
+                            modalBody.innerHTML = `<h2>${articleData.title.rendered}</h2><p class="meta">Dipublikasikan pada: ${formatDate(articleData.yoast_head_json.article_published_time)}</p>${imageSliderHtml}<div class="article-text-content">${doc.body.innerHTML.replace(/<img[^>]*>/g,"")}</div><a href="${articleData.link}" target="_blank" style="display:inline-block; margin-top:20px; color:var(--navy);">Baca di Sumber Asli →</a>`;
+                            articleModal.classList.add('active');
+                            if (images.length > 0) new Swiper('.swiper-modal', { navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' }, loop: true });
+                        }
+                    });
+                });
+                articleModal.querySelector('.modal-close').addEventListener('click', () => articleModal.classList.remove('active'));
+                articleModal.addEventListener('click', (e) => { if (e.target === articleModal) articleModal.classList.remove('active'); });
+            }
+            
+            function attachLightboxListeners() {
+                const lightbox = document.getElementById('lightbox'), lightboxImg = document.getElementById('lightbox-img'), lightboxClose = document.querySelector('.lightbox-close');
+                document.querySelectorAll('.enlargeable').forEach(photo => {
+                    photo.addEventListener('click', (e) => {
+                        const img = e.currentTarget.querySelector('img');
+                        if (img) {
+                            lightbox.classList.add('active');
+                            lightboxImg.src = img.src;
+                        }
+                    });
+                });
+                const closeLightbox = () => lightbox.classList.remove('active');
+                lightbox.addEventListener('click', (e) => { if (e.target !== lightboxImg) closeLightbox(); });
+                lightboxClose.addEventListener('click', closeLightbox);
+            }
+
+            const bulletinScroll = document.getElementById('bulletin-scroll');
+            if (bulletinScroll) {
+                document.querySelector('.bulletin-nav-btn.prev').addEventListener('click', () => bulletinScroll.scrollBy({ left: -300, behavior: 'smooth' }));
+                document.querySelector('.bulletin-nav-btn.next').addEventListener('click', () => bulletinScroll.scrollBy({ left: 300, behavior: 'smooth' }));
+            }
+
+            // Initialize map
+            if (typeof L !== 'undefined') {
+                const map = L.map('weatherMap').setView([1.043889, 103.422222], 10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                L.marker([1.043889, 103.422222]).addTo(map)
+                    .bindPopup('Kabupaten Karimun<br>Cuaca: Berawan')
+                    .openPopup();
+            }
+
+            // Add interactive animations on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe elements for animation
+            setTimeout(() => {
+                document.querySelectorAll('.feature-card, .news-card, .org-box, .profile-card, .timeline-item, .quick-link-card, .sidebar-card').forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'all 0.6s ease';
+                    observer.observe(el);
+                });
+            }, 500);
+            
+            // Add parallax effect
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const parallaxElements = document.querySelectorAll('.hero-header');
+                
+                parallaxElements.forEach(element => {
+                    const speed = 0.5;
+                    element.style.transform = `translateY(${scrolled * speed}px)`;
+                });
+            });
+            
+            // Add counter animation for statistics
+            function animateCounter(element, target) {
+                let current = 0;
+                const increment = target / 100;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current);
+                }, 20);
+            }
+            
+            // Mobile menu functionality
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+
+            // INITIALIZE ALL FUNCTIONS
+            populateSlideshow();
+            initNav();
+            populateQuickLinks();
+            populateLayanan();
+            populateSidebar();
+            populateFooter();
+            populateSlidingNews();
+            populateBulletins();
+            populateOrgChart();
+        });
+    </script>
+</body>
+</html>
