@@ -2398,355 +2398,338 @@
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Hide loader after everything loads
-            window.addEventListener('load', function() {
-                setTimeout(function() {
-                    const loader = document.getElementById('loader');
-                    if (loader) loader.classList.add('hidden');
-                }, 1000);
-            });
-            
-            // Create particles
-            const particlesContainer = document.querySelector('.particles');
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = Math.random() * 100 + 50 + 'px';
-                particle.style.height = particle.style.width;
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (Math.random() * 20 + 20) + 's';
-                particlesContainer.appendChild(particle);
-            }
-            
-            // Real-time Clock Function
-            function updateClocks() {
-                const now = new Date();
-                
-                // Get current UTC time
-                const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-                
-                // WIB (UTC+7)
-                const wibTime = new Date(utcTime + (7 * 60 * 60 * 1000));
-                document.getElementById('header-time-wib').textContent = wibTime.toTimeString().split(' ')[0];
-                
-                // WITA (UTC+8)
-                const witaTime = new Date(utcTime + (8 * 60 * 60 * 1000));
-                document.getElementById('header-time-wita').textContent = witaTime.toTimeString().split(' ')[0];
-                
-                // WIT (UTC+9)
-                const witTime = new Date(utcTime + (9 * 60 * 60 * 1000));
-                document.getElementById('header-time-wit').textContent = witTime.toTimeString().split(' ')[0];
-                
-                // UTC
-                const utcTimeDisplay = new Date(utcTime);
-                document.getElementById('header-time-utc').textContent = utcTimeDisplay.toTimeString().split(' ')[0];
-            }
-            
-            // Update clocks every second
-            setInterval(updateClocks, 1000);
-            updateClocks(); // Initial call
-            
-            const bmkgData = [
-              {"id":1438,"date":"2025-06-11T11:02:34","link":"#","title":{"rendered":"Buletin Meteorologi Edisi 082"}, "content": {"rendered": "<p>Analisis unsur meteorologi / klimatologi Bulan Juni 2025 untuk wilayah Tanjung Balai Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/06/BULETIN-JUNI-2025_opt_001.jpg'>"},"yoast_head_json":{"description":"Pada edisi Ke-82 Buletin Meteorologi bulan Juni 2025...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/06/BULETIN-JUNI-2025_opt_001.jpg"}],"article_published_time":"2025-06-11T04:02:34+00:00"},"categories":[5]},
-              {"id":1128,"date":"2025-05-07T15:32:43","link":"#","title":{"rendered":"Buletin Meteorologi Edisi 081"}, "content": {"rendered": "<p>Analisis unsur meteorologi / klimatologi Bulan Mei 2025 untuk wilayah Tanjung Balai Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/05/BULETIN-MEI-2025_11zon_001.jpg'>"},"yoast_head_json":{"description":"Pada edisi Ke-81 Buletin Meteorologi bulan Mei 2025...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2025/05/BULETIN-MEI-2025_11zon_001.jpg"}],"article_published_time":"2025-05-07T08:32:43+00:00"},"categories":[5]},
-              {"id":1107,"date":"2024-11-15T11:23:02","link":"#","title":{"rendered":"Buletin Meteorologi Edisi 075"}, "content": {"rendered": "<p>Analisis unsur meteorologi / klimatologi Bulan Oktober 2024 untuk wilayah Tanjung Balai Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/11/Screenshot-2024-11-15-111530.jpg'>"},"yoast_head_json":{"description":"Pada edisi Ke–75 Buletin Meteorologi bulan November 2024...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/11/Screenshot-2024-11-15-111530.jpg"}],"article_published_time":"2024-11-15T04:23:02+00:00"},"categories":[5]},
-              {"id":1050,"date":"2024-09-07T14:23:00","link":"#","title":{"rendered":"BMKG Karimun Goes To Tulang Island"}, "content": {"rendered": "<p>Sabtu (07/09), BMKG Stasiun Meteorologi Raja Haji Abdullah Kabupaten Karimun, telah menggelar sosialisasi informasi cuaca dengan mengambil tema \" PRATA ( Pembahasan Ringan Seputar Cuaca ) Perhatikan Cuaca Sebelum Melaut\" di Balai Pertemuan Nelayan Pulau Tulang. Bersama BASARNAS, para nelayan juga dibekali ilmu penyelamatan diri saat dan sebelum melaut.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/1-1024x1024.jpg'><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/2-1024x1024.jpg'>"}, "yoast_head_json":{"description":"Sabtu (07/09), BMKG menggelar sosialisasi informasi cuaca di Pulau Tulang...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/3-Copy-e1725866624490.jpg"}],"article_published_time":"2024-09-07T07:23:00+00:00"},"categories":[7,4]},
-              {"id":1036,"date":"2024-08-21T15:34:25","link":"#","title":{"rendered":"\"PRATA\" Bincang – bincang Dengan Komunitas Petani"}, "content": {"rendered": "<p>Rabu (21/08), Kantor Stasiun Meteorologi Kelas IV Raja Haji Abdullah – Tanjung Balai Karimun sukses melaksanakan Diseminasi Informasi Cuaca yang bertajuk \"Informasi Cuaca di Bidang Pertanian\". Acara ini diselenggarakan dengan tujuan agar masyarakat lebih teredukasi mengenai jenis tanaman yang tepat sesuai dengan cuaca yang sedang terjadi.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/8-1-1024x1024.jpg'>"}, "yoast_head_json":{"description":"Rabu (21/08), Kantor Stasiun Meteorologi sukses melaksanakan Diseminasi Informasi Cuaca di Bidang Pertanian...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/8-Copy-e1724229656543.jpg"}],"article_published_time":"2024-08-21T08:34:25+00:00"},"categories":[7,4,1]},
-              {"id":1014,"date":"2024-08-17T10:28:00","link":"#","title":{"rendered":"Upacara HUT RI ke – 79, BMKG Karimun dan UPBU"}, "content": {"rendered": "<p>Sabtu (17/08), Dalam rangka memperingati HUT RI ke – 79, BMKG Karimun dan UPBU Raja Haji Abdullah mengadakan upacara yang di gelar di halaman parkir Bandara Raja Haji Abdullah.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/1-768x768.jpg'><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/2-768x768.jpg'>"}, "yoast_head_json":{"description":"Sabtu (17/08), Dalam rangka memperingati HUT RI ke – 79, BMKG Karimun dan UPBU mengadakan upacara...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/08/17-e1724035075329.jpg"}],"article_published_time":"2024-08-17T03:28:00+00:00"},"categories":[7,4]},
-              {"id":955,"date":"2024-07-23T14:02:18","link":"#","title":{"rendered":"\"PRATA\" Cara BMKG Untuk Lebih Dekat Dengan Masyarakat"},"content":{"rendered":"<p>Rabu (14/07), Kantor Stasiun Meteorologi Kelas IV Raja Haji Abdullah – Tanjung Balai Karimun sukses melaksanakan Diseminasi Informasi Cuaca yang bertajuk \"Fenomena Angin Kencang, Puting Beliung dan Waterspout\" pada Rabu 14 Juli 2024.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/07/WhatsApp-Image-2024-07-22-at-09.48.36-2.jpeg'>"}, "yoast_head_json":{"description":"Rabu (14/07), Kantor Stasiun Meteorologi sukses melaksanakan Diseminasi tentang Fenomena Angin Kencang...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/07/WhatsApp-Image-2024-07-22-at-09.48.36-2.jpeg"}],"article_published_time":"2024-07-23T07:02:18+00:00"},"categories":[1]},
-              {"id":735,"date":"2023-03-16T14:40:00","link":"#","title":{"rendered":"Bermain Sambil Belajar Bersama SDS 012 Maitreyawira"},"content":{"rendered":"<p>Karimun, 16 Maret 2023. Tepat pukul 08.30, Stasiun Meteorologi Raja Haji Abdullah (Stamet RHA) kedatangan 40 tamu – tamu lucu dan 4 orang guru pendamping dari SDS 012 Maitreyawira.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/03/DSF6310EDIT.jpg'>"}, "yoast_head_json":{"description":"Karimun, 16 Maret 2023. Stamet RHA kedatangan 40 tamu lucu dari SDS 012 Maitreyawira...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/03/DSF6684edit.jpg"}],"article_published_time":"2023-03-16T07:40:00+00:00"},"categories":[7,4,1]},
-              {"id":636,"date":"2023-02-14T10:07:22","link":"#","title":{"rendered":"Stamet RHA Gelar Pelatihan Komunikasi Publik"},"content":{"rendered":"<p>Karimun, 13 Februari 2023. Untuk meningkatkan kualitas SDM dalam menyampaikan informasi yang mudah dipahami oleh masyarakat, STAMET RHA mengadakan \"Pelatihan Komunikasi Publik dan Media Sosial\".</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/edit-11.jpg'>"}, "yoast_head_json":{"description":"Karimun, 13 Februari 2023. STAMET RHA mengadakan Pelatihan Komunikasi Publik dan Media Sosial...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/EDIT-1.jpg"}],"article_published_time":"2023-02-14T03:07:22+00:00"},"categories":[7,4,1]},
-              {"id":584,"date":"2023-02-08T13:35:02","link":"#","title":{"rendered":"Stamet RHA Terima Kunjungan Universitas Karimun"},"content":{"rendered":"<p>Karimun, 07 Februari 2023. Stasiun Meteorologi Raja Haji Abdullah menerima kunjungan mahasiswa dari jurusan Manajemen Kepelabuhan dan Pelayaran Universitas Karimun.</p><img src='https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/DSF4682.jpg'>"}, "yoast_head_json":{"description":"Karimun, 07 Februari 2023. Stasiun Meteorologi Raja Haji Abdullah menerima kunjungan mahasiswa...","og_image":[{"url":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2023/02/DSF4993.jpg"}],"article_published_time":"2023-02-08T06:35:02+00:00"},"categories":[7,4,1]}
-            ];
-            
-            // Additional bulletin data from UIwebBMKGKarimun
-            const additionalBulletins = [
-                {"id":"b4","title":"Buletin Meteorologi Edisi 074","img":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/10/Untitled1_001-300x430.jpg"},
-                {"id":"b5","title":"Buletin Meteorologi Edisi 073","img":"https://stamet-karimun.bmkg.go.id/wp-content/uploads/2024/09/Screenshot-2024-09-10-103342-300x430.png"}
-            ];
-            
-            function formatDate(dateString) { 
-                if (!dateString) return ''; 
-                return new Date(dateString).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }); 
-            }
+   <script src="data.js"></script>
 
-            function populateSlideshow() {
-                const container = document.getElementById('slideshow-container');
-                if (!container) return;
-                const images = ["https://i.postimg.cc/c4r4vzy4/Header.png","https://i.postimg.cc/pdncd4Hj/Kegiatan1.jpg","https://i.postimg.cc/bJcCSgyB/Kegiatan2.jpg","https://i.postimg.cc/vBrPrnDH/Kegiatan3.jpg"];
-                container.innerHTML = images.map((src, i) => `<div class="slide ${i === 0 ? 'active' : ''}"><img src="${src}" alt="Slide ${i+1}"></div>`).join('');
-                let currentSlide = 0;
-                const slides = document.querySelectorAll('.slide');
-                setInterval(() => {
-                    slides[currentSlide].classList.remove('active');
-                    currentSlide = (currentSlide + 1) % slides.length;
-                    slides[currentSlide].classList.add('active');
-                }, 5000);
-            }
-            
-            function initNav() {
-                const nav = document.getElementById('navbar');
-                window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
-            }
+<script>
+document.addEventListener('DOMContentLoaded', function() {
 
-            function populateQuickLinks() {
-                const container = document.querySelector('.quick-links-container');
-                if (!container) return;
-                const links = [
-                    { icon: 'fa-cloud-sun-rain', title: 'Prakiraan Cuaca', text: 'Informasi cuaca terkini Kabupaten Karimun', url: 'https://www.bmkg.go.id/cuaca/prakiraan-cuaca.bmkg?kab=Karimun' },
-                    { icon: 'fa-ship', title: 'Cuaca Maritim', text: 'Informasi cuaca untuk pelayaran', url: 'https://maritim.bmkg.go.id/' },
-                    { icon: 'fa-plane-departure', title: 'Cuaca Penerbangan', text: 'Informasi cuaca untuk penerbangan', url: 'https://web-aviation.bmkg.go.id/' },
-                    { icon: 'fa-exclamation-triangle', title: 'Peringatan Dini', text: 'Informasi peringatan dini cuaca ekstrem', url: 'https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca' },
-                    { icon: 'fa-water', title: 'Gempa & Tsunami', text: 'Informasi gempa dan tsunami terkini', url: 'https://inatews.bmkg.go.id/' },
-                    { icon: 'fa-temperature-high', title: 'Data Iklim', text: 'Analisis data iklim historis', url: 'https://iklim.bmkg.go.id/id/' }
-                ];
-                container.innerHTML = links.map(link => `
-                    <a href="${link.url}" target="_blank" class="quick-link-card">
-                        <i class="fas ${link.icon}"></i><h3>${link.title}</h3><p>${link.text}</p>
-                    </a>`).join('');
-            }
-            
-            function populateLayanan() {
-                const container = document.querySelector('.features-grid');
-                if (!container) return;
-                const services = [
-                    { icon: 'fa-chart-line', title: 'Prakiraan Cuaca', text: 'Informasi prakiraan cuaca harian dan mingguan yang akurat untuk wilayah Karimun.' },
-                    { icon: 'fa-satellite', title: 'Citra Satelit', text: 'Pantauan real-time kondisi atmosfer melalui satelit Himawari terkini.' },
-                    { icon: 'fa-broadcast-tower', title: 'Radar Cuaca', text: 'Monitoring cuaca untuk deteksi dini cuaca ekstrem di wilayah operasional.' },
-                    { icon: 'fa-exclamation-triangle', title: 'Peringatan Dini', text: 'Informasi peringatan dini cuaca ekstrem untuk keselamatan masyarakat.' },
-                    { icon: 'fa-temperature-high', title: 'Data Iklim', text: 'Analisis data iklim historis dan tren perubahan iklim regional.' },
-                    { icon: 'fa-shield-alt', title: 'Klaim Asuransi', text: 'Layanan surat keterangan cuaca untuk keperluan klaim asuransi bencana alam.', special: 'insurance' }
-                ];
-                container.innerHTML = services.map(s => `
-                    <div class="feature-card ${s.special || ''}">
-                        <i class="fas ${s.icon}"></i><h3>${s.title}</h3><p>${s.text}</p>
-                    </div>`).join('');
-            }
+    // =================================================================
+    // BAGIAN 1: FUNGSI-FUNGSI PENDUKUNG (HELPER FUNCTIONS)
+    // =================================================================
 
-            function populateSidebar() {
-                const container = document.getElementById('sidebar-col');
-                if (!container) return;
-                container.innerHTML = `
-                    <div class="sidebar-card"><h3><i class="fas fa-satellite"></i> Citra Satelit</h3><img src="https://inderaja.bmkg.go.id/IMAGE/HIMA/H08_EH_Kepri.png" alt="Citra Satelit" loading="lazy"></div>
-                    <div class="sidebar-card"><h3><i class="fas fa-broadcast-tower"></i> Citra Radar</h3><img src="https://inderaja.bmkg.go.id/Radar/BATA_SingleLayerCRefQC.png" alt="Citra Radar" loading="lazy"></div>
-                    <div class="sidebar-card"><h3><i class="fab fa-instagram"></i> Instagram @bmkgkarimun</h3><div class="instagram-grid"><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/HnKvbZKG/Tumbh-IG1.jpg" alt="IG Post 1" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/D0mYJkxd/Tumbh-IG2.jpg" alt="IG Post 2" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/SQtP0RKZ/Tumbh-IG3.jpg" alt="IG Post 3" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/RV6Dvm6v/Tumbh-IG4.jpg" alt="IG Post 4" loading="lazy"></a></div><a href="https://instagram.com/bmkgkarimun" target="_blank" class="instagram-follow"><i class="fab fa-instagram"></i> Follow @bmkgkarimun</a></div>
-                `;
-            }
-            
-            function populateFooter() {
-                const container = document.getElementById('footer-container');
-                if (!container) return;
-                container.innerHTML = `
-                    <div class="footer-col"><h3>Hubungi Kami</h3><ul><li><i class="fas fa-map-marker-alt"></i><div>Bandara Raja Haji Abdullah, Jl. Mayjen Sutoyo Km.12, Tanjung Balai, Karimun</div></li><li><i class="fas fa-phone"></i><div>0777-324320</div></li><li><i class="fas fa-envelope"></i><div>meteo.tbk@gmail.com</div></li></ul></div>
-                    <div class="footer-col"><h3>Jam Operasional</h3><ul><li>Senin - Jumat: 08:00 - 16:00</li><li>Layanan 24 Jam untuk Informasi Cuaca</li></ul><h3 style="margin-top:20px;">Media Sosial</h3><div class="social-icons" style="justify-content: flex-start;"><a href="https://instagram.com/bmkgkarimun" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="https://web.facebook.com/bmkgkarimun" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a><a href="https://twitter.com/bmkgkarimun" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a><a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a></div></div>
-                    <div class="footer-col"><h3>Link Terkait</h3><ul><li><a href="https://www.bmkg.go.id" target="_blank">BMKG Pusat</a></li><li><a href="https://stmkg.ac.id" target="_blank">STMKG</a></li><li><a href="https://dataonline.bmkg.go.id" target="_blank">Data Online BMKG</a></li><li><a href="https://signature.bmkg.go.id" target="_blank">Verifikasi Dokumen</a></li></ul></div>
-                `;
-            }
-
-            function populateSlidingNews() {
-                const track = document.getElementById('news-track');
-                const trackDuplicate = document.getElementById('news-track-duplicate');
-                if (!track || !trackDuplicate) return;
-                
-                const articles = bmkgData.filter(item => item.categories && (item.categories.includes(1) || item.categories.includes(4) || item.categories.includes(7))).sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                const newsHtml = articles.map(article => `
-                    <div class="news-card">
-                        <div class="news-image">
-                            <img src="${article.yoast_head_json.og_image[0].url}" alt="${article.title.rendered}" loading="lazy">
-                            <div class="news-date">${formatDate(article.yoast_head_json.article_published_time)}</div>
-                        </div>
-                        <div class="news-content">
-                            <h3>${article.title.rendered}</h3>
-                            <p>${article.yoast_head_json.description}</p>
-                            <span class="read-more" data-id="${article.id}">Baca Selengkapnya →</span>
-                        </div>
-                    </div>
-                `).join('');
-                
-                track.innerHTML = newsHtml;
-                trackDuplicate.innerHTML = newsHtml;
-                
-                attachModalListeners();
-            }
-
-            function populateBulletins() {
-                const track = document.getElementById('bulletin-track');
-                if (!track) return;
-                
-                const bulletins = bmkgData.filter(item => item.categories && item.categories.includes(5)).sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                // Add bulletins from original data
-                let bulletinHtml = bulletins.map(b => `
-                    <a href="${b.link}" target="_blank" class="bulletin-item">
-                        <img src="${b.yoast_head_json.og_image[0].url}" alt="${b.title.rendered}" loading="lazy">
-                        <div class="bulletin-label">${b.title.rendered}</div>
-                    </a>
-                `).join('');
-                
-                // Add additional bulletins from UIwebBMKGKarimun
-                bulletinHtml += additionalBulletins.map(b => `
-                    <a href="#" class="bulletin-item">
-                        <img src="${b.img}" alt="${b.title}" loading="lazy">
-                        <div class="bulletin-label">${b.title}</div>
-                    </a>
-                `).join('');
-                
-                track.innerHTML = bulletinHtml;
-            }
-
-            function populateOrgChart() {
-                const container = document.getElementById('org-chart-container');
-                if (!container) return;
-                const staff = [
-                    { pos: 'Kepala Stasiun', name: 'Deny, S.Ikom', img: 'https://i.postimg.cc/rmfQzJ7x/Foto-Pak-Deny.png', type: 'head' },
-                    { pos: 'Ka. Sub. Bagian TU', name: 'Unik Haryanti', img: 'https://i.postimg.cc/Y0VRzSrS/Foto-Kak-Unik.png', type: 'subhead' },
-                    { pos: 'Ka. Kelompok Observasi', name: 'Dea Andita Siregar', img: 'https://i.postimg.cc/Kz85XT4z/Foto-Kak-Dea.png', type: 'subhead' },
-                    { pos: 'Bendahara', name: 'Susilih Kuntarti', img: 'https://i.postimg.cc/9F614zg8/Foto-Kak-Susi.png', type: 'staff' },
-                    { pos: 'Anggota', name: 'Firmansyah', img: 'https://i.postimg.cc/WztSZZPK/Foto-Bg-Firman.png', type: 'staff' },
-                    { pos: 'Observer & Forecaster', name: 'Younggy Hutabarat', img: 'https://i.postimg.cc/Pq4MFyX9/Foto-Bg-Younggy.png', type: 'staff' },
-                    { pos: 'Observer & Forecaster', name: 'Andeliyoela Bianti', img: 'https://i.postimg.cc/59ksVsBM/Foto-Kak-Yola.png', type: 'staff' },
-                    { pos: 'Observer & Forecaster', name: 'Muhammad Sawal', img: 'https://i.postimg.cc/5t133TV8/Foto-Sawal.png', type: 'staff' },
-                    { pos: 'Teknisi', name: 'Hadi Trisna Subekti', img: 'https://i.postimg.cc/DyJBy164/Foto-Bg-Hadi.png', type: 'staff' },
-                    { pos: 'Teknisi', name: 'Putri Haryati Rizki', img: 'https://i.postimg.cc/nhq2qZ6H/Foto-Kak-Putri.png', type: 'staff' }
-                ];
-                let headHtml = '', subheadHtml = '', staffHtml = '';
-                staff.forEach(member => {
-                    const memberHtml = `<div class="org-box ${member.type}"><div class="org-photo enlargeable"><img src="${member.img}" alt="Foto ${member.name}" loading="lazy"></div><div class="org-position">${member.pos}</div><div class="org-name">${member.name}</div></div>`;
-                    if (member.type === 'head') headHtml += memberHtml;
-                    else if (member.type === 'subhead') subheadHtml += memberHtml;
-                    else staffHtml += memberHtml;
-                });
-                container.innerHTML = `<div class="org-level">${headHtml}</div><div class="org-level">${subheadHtml}</div><div class="org-level staff">${staffHtml}</div>`;
-                attachLightboxListeners();
-            }
-
-            function attachModalListeners() {
-                const articleModal = document.getElementById('article-modal'), modalBody = document.getElementById('modal-body');
-                document.querySelectorAll('.read-more').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const articleId = parseInt(e.target.dataset.id), articleData = bmkgData.find(item => item.id === articleId);
-                        if(articleData) {
-                            const parser = new DOMParser(), doc = parser.parseFromString(articleData.content.rendered, 'text/html');
-                            const images = Array.from(doc.querySelectorAll('img')).map(img => img.src);
-                            const imageSliderHtml = images.length > 0 ? `<div class="modal-slider"><div class="swiper swiper-modal"><div class="swiper-wrapper">${images.map(src => `<div class="swiper-slide"><img src="${src}" loading="lazy" alt="Gambar Artikel"></div>`).join('')}</div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div></div></div>` : `<img src="${articleData.yoast_head_json.og_image[0].url}" style="width:100%; border-radius:15px; margin-bottom:20px;">`;
-                            modalBody.innerHTML = `<h2>${articleData.title.rendered}</h2><p class="meta">Dipublikasikan pada: ${formatDate(articleData.yoast_head_json.article_published_time)}</p>${imageSliderHtml}<div class="article-text-content">${doc.body.innerHTML.replace(/<img[^>]*>/g,"")}</div><a href="${articleData.link}" target="_blank" style="display:inline-block; margin-top:20px; color:var(--navy);">Baca di Sumber Asli →</a>`;
-                            articleModal.classList.add('active');
-                            if (images.length > 0) new Swiper('.swiper-modal', { navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' }, loop: true });
-                        }
-                    });
-                });
-                articleModal.querySelector('.modal-close').addEventListener('click', () => articleModal.classList.remove('active'));
-                articleModal.addEventListener('click', (e) => { if (e.target === articleModal) articleModal.classList.remove('active'); });
-            }
-            
-            function attachLightboxListeners() {
-                const lightbox = document.getElementById('lightbox'), lightboxImg = document.getElementById('lightbox-img'), lightboxClose = document.querySelector('.lightbox-close');
-                document.querySelectorAll('.enlargeable').forEach(photo => {
-                    photo.addEventListener('click', (e) => {
-                        const img = e.currentTarget.querySelector('img');
-                        if (img) {
-                            lightbox.classList.add('active');
-                            lightboxImg.src = img.src;
-                        }
-                    });
-                });
-                const closeLightbox = () => lightbox.classList.remove('active');
-                lightbox.addEventListener('click', (e) => { if (e.target !== lightboxImg) closeLightbox(); });
-                lightboxClose.addEventListener('click', closeLightbox);
-            }
-
-            const bulletinScroll = document.getElementById('bulletin-scroll');
-            if (bulletinScroll) {
-                document.querySelector('.bulletin-nav-btn.prev').addEventListener('click', () => bulletinScroll.scrollBy({ left: -300, behavior: 'smooth' }));
-                document.querySelector('.bulletin-nav-btn.next').addEventListener('click', () => bulletinScroll.scrollBy({ left: 300, behavior: 'smooth' }));
-            }
-
-            // Initialize map
-            if (typeof L !== 'undefined') {
-                const map = L.map('weatherMap').setView([1.043889, 103.422222], 10);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
-                L.marker([1.043889, 103.422222]).addTo(map)
-                    .bindPopup('Kabupaten Karimun<br>Cuaca: Berawan')
-                    .openPopup();
-            }
-
-            // Add interactive animations on scroll
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -100px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Observe elements for animation
-            setTimeout(() => {
-                document.querySelectorAll('.feature-card, .news-card, .org-box, .profile-card, .timeline-item, .quick-link-card, .sidebar-card').forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.transform = 'translateY(20px)';
-                    el.style.transition = 'all 0.6s ease';
-                    observer.observe(el);
-                });
-            }, 500);
-            
-            // Add parallax effect
-            window.addEventListener('scroll', () => {
-                const scrolled = window.pageYOffset;
-                const parallaxElements = document.querySelectorAll('.hero-header');
-                
-                parallaxElements.forEach(element => {
-                    const speed = 0.5;
-                    element.style.transform = `translateY(${scrolled * speed}px)`;
-                });
-            });
-            
-            // Add counter animation for statistics
-            function animateCounter(element, target) {
-                let current = 0;
-                const increment = target / 100;
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
-                    }
-                    element.textContent = Math.floor(current);
-                }, 20);
-            }
-            
-            // Mobile menu functionality
-            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            
-            if (mobileMenuToggle) {
-                mobileMenuToggle.addEventListener('click', () => {
-                    navLinks.classList.toggle('active');
-                });
-            }
-
-            // INITIALIZE ALL FUNCTIONS
-            populateSlideshow();
-            initNav();
-            populateQuickLinks();
-            populateLayanan();
-            populateSidebar();
-            populateFooter();
-            populateSlidingNews();
-            populateBulletins();
-            populateOrgChart();
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
-    </script>
+    }
+
+    // =================================================================
+    // BAGIAN 2: FUNGSI UNTUK MENGISI KONTEN (YANG SUDAH DIPERBAIKI)
+    // =================================================================
+
+    function populateFeaturedNews() {
+        const container = document.querySelector('.featured-news-card');
+        if (!container) return;
+
+        const featuredArticle = bmkgData
+            .filter(item => item.type === 'artikel')
+            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+        if (featuredArticle) {
+            container.innerHTML = `
+                <a href="artikel.html?id=${featuredArticle.id}" style="text-decoration:none; color:inherit;">
+                    <div class="featured-news-image">
+                        <img src="${featuredArticle.yoast_head_json.og_image[0].url}" alt="Featured News">
+                        <div class="featured-badge">Terbaru!</div>
+                    </div>
+                    <div class="featured-news-content">
+                        <h3>${featuredArticle.title.rendered}</h3>
+                        <p class="meta">Dipublikasikan pada: ${formatDate(featuredArticle.date)}</p>
+                        <p>${featuredArticle.yoast_head_json.description}</p>
+                        <span class="read-more">Baca Selengkapnya →</span>
+                    </div>
+                </a>
+            `;
+        }
+    }
+
+    function populateSlidingNews() {
+        const track = document.getElementById('news-track');
+        const trackDuplicate = document.getElementById('news-track-duplicate');
+        if (!track || !trackDuplicate) return;
+
+        const articles = bmkgData
+            .filter(item => item.type === 'artikel')
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const newsHtml = articles.map(article => `
+            <div class="news-card">
+                <a href="artikel.html?id=${article.id}" style="text-decoration: none; color: inherit;">
+                    <div class="news-image">
+                        <img src="${article.yoast_head_json.og_image[0].url}" alt="${article.title.rendered}" loading="lazy">
+                        <div class="news-date">${formatDate(article.date)}</div>
+                    </div>
+                    <div class="news-content">
+                        <h3>${article.title.rendered}</h3>
+                        <p>${article.yoast_head_json.description}</p>
+                        <span class="read-more">Baca Selengkapnya →</span>
+                    </div>
+                </a>
+            </div>
+        `).join('');
+
+        track.innerHTML = newsHtml;
+        trackDuplicate.innerHTML = newsHtml;
+    }
+
+    function populateBulletins() {
+        const track = document.getElementById('bulletin-track');
+        if (!track) return;
+
+        const bulletins = bmkgData
+            .filter(item => item.type === 'buletin')
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        let bulletinHtml = bulletins.map(b => `
+            <a href="buletin.html?id=${b.id}" class="bulletin-item">
+                <img src="${b.yoast_head_json.og_image[0].url}" alt="${b.title.rendered}" loading="lazy">
+                <div class="bulletin-label">${b.title.rendered}</div>
+            </a>
+        `).join('');
+
+        track.innerHTML = bulletinHtml;
+    }
+
+
+    // =================================================================
+    // BAGIAN 3: FUNGSI-FUNGSI LAIN DARI KODE LAMA ANDA (YANG TIDAK BERUBAH)
+    // =================================================================
+    // Saya sudah pindahkan semua fungsi lain yang penting ke sini agar tetap berjalan.
+
+    function initLoader() {
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                if (loader) loader.classList.add('hidden');
+            }, 1000);
+        });
+    }
+
+    function createParticles() {
+        const particlesContainer = document.querySelector('.particles');
+        if (!particlesContainer) return;
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = Math.random() * 100 + 50 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 20 + 20) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    function updateClocks() {
+        const now = new Date();
+        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const wibTime = new Date(utcTime + (7 * 60 * 60 * 1000));
+        const witaTime = new Date(utcTime + (8 * 60 * 60 * 1000));
+        const witTime = new Date(utcTime + (9 * 60 * 60 * 1000));
+        const utcTimeDisplay = new Date(utcTime);
+        document.getElementById('header-time-wib').textContent = wibTime.toTimeString().split(' ')[0];
+        document.getElementById('header-time-wita').textContent = witaTime.toTimeString().split(' ')[0];
+        document.getElementById('header-time-wit').textContent = witTime.toTimeString().split(' ')[0];
+        document.getElementById('header-time-utc').textContent = utcTimeDisplay.toTimeString().split(' ')[0];
+    }
+    
+    function populateSlideshow() {
+        const container = document.getElementById('slideshow-container');
+        if (!container) return;
+        const images = ["https://i.postimg.cc/c4r4vzy4/Header.png", "https://i.postimg.cc/pdncd4Hj/Kegiatan1.jpg", "https://i.postimg.cc/bJcCSgyB/Kegiatan2.jpg", "https://i.postimg.cc/vBrPrnDH/Kegiatan3.jpg"];
+        container.innerHTML = images.map((src, i) => `<div class="slide ${i === 0 ? 'active' : ''}"><img src="${src}" alt="Slide ${i+1}"></div>`).join('');
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        setInterval(() => {
+            if (slides.length > 0) {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }
+        }, 5000);
+    }
+
+    function initNav() {
+        const nav = document.getElementById('navbar');
+        if (nav) window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+        
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (mobileMenuToggle && navLinks) {
+            mobileMenuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
+        }
+    }
+
+    function populateQuickLinks() {
+        const container = document.querySelector('.quick-links-container');
+        if (!container) return;
+        const links = [
+            { icon: 'fa-cloud-sun-rain', title: 'Prakiraan Cuaca', text: 'Informasi cuaca terkini Kabupaten Karimun', url: 'https://www.bmkg.go.id/cuaca/prakiraan-cuaca.bmkg?kab=Karimun' },
+            { icon: 'fa-ship', title: 'Cuaca Maritim', text: 'Informasi cuaca untuk pelayaran', url: 'https://maritim.bmkg.go.id/' },
+            { icon: 'fa-plane-departure', title: 'Cuaca Penerbangan', text: 'Informasi cuaca untuk penerbangan', url: 'https://web-aviation.bmkg.go.id/' },
+            { icon: 'fa-exclamation-triangle', title: 'Peringatan Dini', text: 'Informasi peringatan dini cuaca ekstrem', url: 'https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca' },
+            { icon: 'fa-water', title: 'Gempa & Tsunami', text: 'Informasi gempa dan tsunami terkini', url: 'https://inatews.bmkg.go.id/' },
+            { icon: 'fa-temperature-high', title: 'Data Iklim', text: 'Analisis data iklim historis', url: 'https://iklim.bmkg.go.id/id/' }
+        ];
+        container.innerHTML = links.map(link => `
+            <a href="${link.url}" target="_blank" class="quick-link-card">
+                <i class="fas ${link.icon}"></i><h3>${link.title}</h3><p>${link.text}</p>
+            </a>`).join('');
+    }
+
+    function populateLayanan() {
+        const container = document.querySelector('.features-grid');
+        if (!container) return;
+        const services = [
+            { icon: 'fa-chart-line', title: 'Prakiraan Cuaca', text: 'Informasi prakiraan cuaca harian dan mingguan yang akurat untuk wilayah Karimun.' },
+            { icon: 'fa-satellite', title: 'Citra Satelit', text: 'Pantauan real-time kondisi atmosfer melalui satelit Himawari terkini.' },
+            { icon: 'fa-broadcast-tower', title: 'Radar Cuaca', text: 'Monitoring cuaca untuk deteksi dini cuaca ekstrem di wilayah operasional.' },
+            { icon: 'fa-exclamation-triangle', title: 'Peringatan Dini', text: 'Informasi peringatan dini cuaca ekstrem untuk keselamatan masyarakat.' },
+            { icon: 'fa-temperature-high', title: 'Data Iklim', text: 'Analisis data iklim historis dan tren perubahan iklim regional.' },
+            { icon: 'fa-shield-alt', title: 'Klaim Asuransi', text: 'Layanan surat keterangan cuaca untuk keperluan klaim asuransi bencana alam.', special: 'insurance' }
+        ];
+        container.innerHTML = services.map(s => `
+            <div class="feature-card ${s.special || ''}">
+                <i class="fas ${s.icon}"></i><h3>${s.title}</h3><p>${s.text}</p>
+            </div>`).join('');
+    }
+
+    function populateSidebar() {
+        const container = document.getElementById('sidebar-col');
+        if (!container) return;
+        container.innerHTML = `
+            <div class="sidebar-card"><h3><i class="fas fa-satellite"></i> Citra Satelit</h3><img src="https://inderaja.bmkg.go.id/IMAGE/HIMA/H08_EH_Kepri.png" alt="Citra Satelit" loading="lazy"></div>
+            <div class="sidebar-card"><h3><i class="fas fa-broadcast-tower"></i> Citra Radar</h3><img src="https://inderaja.bmkg.go.id/Radar/BATA_SingleLayerCRefQC.png" alt="Citra Radar" loading="lazy"></div>
+            <div class="sidebar-card"><h3><i class="fab fa-instagram"></i> Instagram @bmkgkarimun</h3><div class="instagram-grid"><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/HnKvbZKG/Tumbh-IG1.jpg" alt="IG Post 1" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/D0mYJkxd/Tumbh-IG2.jpg" alt="IG Post 2" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/SQtP0RKZ/Tumbh-IG3.jpg" alt="IG Post 3" loading="lazy"></a><a href="https://instagram.com/bmkgkarimun" target="_blank"><img src="https://i.postimg.cc/RV6Dvm6v/Tumbh-IG4.jpg" alt="IG Post 4" loading="lazy"></a></div><a href="https://instagram.com/bmkgkarimun" target="_blank" class="instagram-follow"><i class="fab fa-instagram"></i> Follow @bmkgkarimun</a></div>
+        `;
+    }
+
+    function populateFooter() {
+        const container = document.getElementById('footer-container');
+        if (!container) return;
+        container.innerHTML = `
+            <div class="footer-col"><h3>Hubungi Kami</h3><ul><li><i class="fas fa-map-marker-alt"></i><div>Bandara Raja Haji Abdullah, Jl. Mayjen Sutoyo Km.12, Tanjung Balai, Karimun</div></li><li><i class="fas fa-phone"></i><div>0777-324320</div></li><li><i class="fas fa-envelope"></i><div>meteo.tbk@gmail.com</div></li></ul></div>
+            <div class="footer-col"><h3>Jam Operasional</h3><ul><li>Senin - Jumat: 08:00 - 16:00</li><li>Layanan 24 Jam untuk Informasi Cuaca</li></ul><h3 style="margin-top:20px;">Media Sosial</h3><div class="social-icons" style="justify-content: flex-start;"><a href="https://instagram.com/bmkgkarimun" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="https://web.facebook.com/bmkgkarimun" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a><a href="https://twitter.com/bmkgkarimun" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a><a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a></div></div>
+            <div class="footer-col"><h3>Link Terkait</h3><ul><li><a href="https://www.bmkg.go.id" target="_blank">BMKG Pusat</a></li><li><a href="https://stmkg.ac.id" target="_blank">STMKG</a></li><li><a href="https://dataonline.bmkg.go.id" target="_blank">Data Online BMKG</a></li><li><a href="https://signature.bmkg.go.id" target="_blank">Verifikasi Dokumen</a></li></ul></div>
+        `;
+    }
+
+    function populateOrgChart() {
+        const container = document.getElementById('org-chart-container');
+        if (!container) return;
+        const staff = [
+            { pos: 'Kepala Stasiun', name: 'Deny, S.Ikom', img: 'https://i.postimg.cc/rmfQzJ7x/Foto-Pak-Deny.png', type: 'head' },
+            { pos: 'Ka. Sub. Bagian TU', name: 'Unik Haryanti', img: 'https://i.postimg.cc/Y0VRzSrS/Foto-Kak-Unik.png', type: 'subhead' },
+            { pos: 'Ka. Kelompok Observasi', name: 'Dea Andita Siregar', img: 'https://i.postimg.cc/Kz85XT4z/Foto-Kak-Dea.png', type: 'subhead' },
+            { pos: 'Bendahara', name: 'Susilih Kuntarti', img: 'https://i.postimg.cc/9F614zg8/Foto-Kak-Susi.png', type: 'staff' },
+            { pos: 'Anggota', name: 'Firmansyah', img: 'https://i.postimg.cc/WztSZZPK/Foto-Bg-Firman.png', type: 'staff' },
+            { pos: 'Observer & Forecaster', name: 'Younggy Hutabarat', img: 'https://i.postimg.cc/Pq4MFyX9/Foto-Bg-Younggy.png', type: 'staff' },
+            { pos: 'Observer & Forecaster', name: 'Andeliyoela Bianti', img: 'https://i.postimg.cc/59ksVsBM/Foto-Kak-Yola.png', type: 'staff' },
+            { pos: 'Observer & Forecaster', name: 'Muhammad Sawal', img: 'https://i.postimg.cc/5t133TV8/Foto-Sawal.png', type: 'staff' },
+            { pos: 'Teknisi', name: 'Hadi Trisna Subekti', img: 'https://i.postimg.cc/DyJBy164/Foto-Bg-Hadi.png', type: 'staff' },
+            { pos: 'Teknisi', name: 'Putri Haryati Rizki', img: 'https://i.postimg.cc/nhq2qZ6H/Foto-Kak-Putri.png', type: 'staff' }
+        ];
+        let headHtml = '', subheadHtml = '', staffHtml = '';
+        staff.forEach(member => {
+            const memberHtml = `<div class="org-box ${member.type}"><div class="org-photo enlargeable"><img src="${member.img}" alt="Foto ${member.name}" loading="lazy"></div><div class="org-position">${member.pos}</div><div class="org-name">${member.name}</div></div>`;
+            if (member.type === 'head') headHtml += memberHtml;
+            else if (member.type === 'subhead') subheadHtml += memberHtml;
+            else staffHtml += memberHtml;
+        });
+        container.innerHTML = `<div class="org-level">${headHtml}</div><div class="org-level">${subheadHtml}</div><div class="org-level staff">${staffHtml}</div>`;
+        attachLightboxListeners();
+    }
+
+    function attachLightboxListeners() {
+        const lightbox = document.getElementById('lightbox'), lightboxImg = document.getElementById('lightbox-img'), lightboxClose = document.querySelector('.lightbox-close');
+        document.querySelectorAll('.enlargeable').forEach(photo => {
+            photo.addEventListener('click', (e) => {
+                const img = e.currentTarget.querySelector('img');
+                if (img) {
+                    lightbox.classList.add('active');
+                    lightboxImg.src = img.src;
+                }
+            });
+        });
+        const closeLightbox = () => lightbox.classList.remove('active');
+        lightbox.addEventListener('click', (e) => { if (e.target !== lightboxImg) closeLightbox(); });
+        lightboxClose.addEventListener('click', closeLightbox);
+    }
+    
+    function initBulletinNav() {
+        const bulletinScroll = document.getElementById('bulletin-scroll');
+        if (bulletinScroll) {
+            document.querySelector('.bulletin-nav-btn.prev').addEventListener('click', () => bulletinScroll.scrollBy({ left: -300, behavior: 'smooth' }));
+            document.querySelector('.bulletin-nav-btn.next').addEventListener('click', () => bulletinScroll.scrollBy({ left: 300, behavior: 'smooth' }));
+        }
+    }
+
+    function initMap() {
+        if (typeof L !== 'undefined' && document.getElementById('weatherMap')) {
+            const map = L.map('weatherMap').setView([1.043889, 103.422222], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            L.marker([1.043889, 103.422222]).addTo(map)
+                .bindPopup('Kabupaten Karimun<br>Cuaca: Berawan')
+                .openPopup();
+        }
+    }
+    
+    function initScrollAnimations() {
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -100px 0px' };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        setTimeout(() => {
+            document.querySelectorAll('.feature-card, .news-card, .org-box, .profile-card, .timeline-item, .quick-link-card, .sidebar-card').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'all 0.6s ease';
+                observer.observe(el);
+            });
+        }, 500);
+    }
+    
+    // =================================================================
+    // BAGIAN 4: MEMANGGIL SEMUA FUNGSI (INITIALIZE)
+    // =================================================================
+    
+    initLoader();
+    createParticles();
+    setInterval(updateClocks, 1000);
+    updateClocks();
+    
+    // Fungsi untuk mengisi konten dinamis
+    populateFeaturedNews();
+    populateSlidingNews();
+    populateBulletins();
+
+    // Fungsi untuk mengisi bagian lain dari halaman
+    populateSlideshow();
+    initNav();
+    populateQuickLinks();
+    populateLayanan();
+    populateSidebar();
+    populateFooter();
+    populateOrgChart();
+
+    // Fungsi interaktif lainnya
+    attachLightboxListeners();
+    initBulletinNav();
+    initMap();
+    initScrollAnimations();
+});
+</script>
 </body>
 </html>
