@@ -1,0 +1,2602 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Infografis Prakiraan Cuaca BMKG - Kabupaten Karimun</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+      color: #1a202c;
+      min-height: 100vh;
+      background-image: url('https://i.postimg.cc/4x0FsZrZ/fotoKantor.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    
+    .dashboard-header {
+      background: linear-gradient(135deg, #005a87 0%, #003d5c 100%);
+      padding: 20px 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .dashboard-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 15s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(180deg); }
+    }
+    
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .logo-section img {
+      height: 60px;
+      width: auto;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .header-title {
+      color: white;
+    }
+    
+    .header-title h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .header-title p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .control-panel {
+      background: white;
+      margin: 20px auto;
+      max-width: 1400px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+    
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 25px;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .control-group label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .control-group label i {
+      color: #005a87;
+    }
+    
+    .control-group select,
+    .control-group input[type="text"],
+    .control-group input[type="date"] {
+      padding: 14px 18px;
+      font-size: 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: white;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .control-group select:hover,
+    .control-group input:hover {
+      border-color: #005a87;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,90,135,0.2);
+    }
+    
+    .control-group select:focus,
+    .control-group input:focus {
+      outline: none;
+      border-color: #005a87;
+      box-shadow: 0 0 0 4px rgba(0,90,135,0.1);
+    }
+    
+    .date-warning {
+      font-size: 12px;
+      color: #f56565;
+      margin-top: 5px;
+      display: none;
+      font-weight: 500;
+    }
+    
+    .date-warning.show {
+      display: block;
+    }
+    
+    .edit-toggle {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px 20px;
+      background: #f7fafc;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e0;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+      background-color: #48bb78;
+    }
+    
+    input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #005a87 0%, #004570 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,90,135,0.4);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(72,187,120,0.4);
+    }
+    
+    .btn-info {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+    }
+    
+    .btn-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66,153,225,0.4);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(246,173,85,0.4);
+    }
+    
+    .btn-sm {
+      padding: 10px 15px !important;
+      font-size: 14px !important;
+    }
+    
+    .btn-danger-sm {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .btn-danger-sm:hover {
+      background: #c53030;
+    }
+    
+    .template-container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .template-wrapper {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+      display: inline-block;
+      text-align: center;
+    }
+    
+    .template {
+      width: 1080px;
+      height: 1350px;
+      position: relative;
+      display: none;
+      background-image: url('https://raw.githubusercontent.com/sawal1512/svg-assets/main/TemplatePrakicuKabKarimun.svg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    
+    .template.active {
+      display: block;
+    }
+    
+    .cover-template {
+      width: 1080px;
+      height: 1350px;
+      position: relative;
+      display: none;
+      background-image: url('https://raw.githubusercontent.com/sawal1512/svg-assets/main/CoverPrakicuKabKarimun.svg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    
+    .cover-template.active {
+      display: block;
+    }
+    
+    .cover-period {
+      position: absolute;
+      top: 650px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Raleway', sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+      line-height: 1.5;
+      padding: 0 120px;
+    }
+    
+    .table-period {
+      position: absolute;
+      top: 160px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Raleway', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.3;
+      padding: 10px;
+    }
+    
+    .weather-table-container {
+      position: absolute;
+      top: 210px;
+      left: 30px;
+      right: 30px;
+      background: rgba(255,255,255,0.90);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      backdrop-filter: blur(10px);
+    }
+    
+    .weather-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .weather-table thead {
+      background: linear-gradient(135deg, #005a87 0%, #004570 100%);
+      color: white;
+    }
+    
+    .weather-table thead th {
+      padding: 12px 3px;
+      font-weight: 600;
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.2);
+      font-size: 20px;
+    }
+    
+    .weather-table thead th:last-child {
+      border-right: none;
+    }
+    
+    .weather-table thead th.location-header {
+      background: linear-gradient(135deg, #003d5c 0%, #002a42 100%);
+      font-size: 16px;
+      width: 120px;
+      position: relative;
+    }
+    
+    .weather-table thead th.location-header i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    
+    .weather-table thead th.info-header {
+      background: linear-gradient(135deg, #00897b 0%, #00695c 100%);
+      font-size: 14px;
+      width: 90px;
+    }
+    
+    .weather-table thead th.info-header i {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    
+    .weather-table tbody tr {
+      border-bottom: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+    
+    .weather-table tbody tr:hover {
+      background: rgba(0,90,135,0.05);
+      transform: translateX(2px);
+    }
+    
+    .weather-table tbody tr:nth-child(even) {
+      background: rgba(248,249,250,0.8);
+    }
+    
+    .weather-table tbody td {
+      padding: 8px 2px;
+      text-align: center;
+      border-right: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    
+    .weather-table tbody td:last-child {
+      border-right: none;
+    }
+    
+    .weather-table tbody td.location-cell {
+      font-weight: 700;
+      font-size: 16px;
+      background: linear-gradient(90deg, rgba(240,244,248,1) 0%, rgba(240,244,248,0) 100%);
+      text-align: left;
+      padding-left: 12px;
+      color: #2d3748;
+    }
+    
+    .weather-table tbody td.weather-cell {
+      padding: 6px 1px;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .weather-table.edit-mode tbody td.weather-cell:hover {
+      background: rgba(0,90,135,0.1);
+    }
+    
+    .weather-icon {
+      width: 41px;
+      height: 41px;
+      margin: 0 auto;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+      transition: transform 0.3s ease;
+    }
+    
+    .weather-table tbody tr:hover .weather-icon {
+      transform: scale(1.1);
+    }
+    
+    .weather-table tbody td.info-cell {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .temp-range {
+      color: #dc2626;
+      font-weight: 700;
+      font-size: 14.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+    
+    .temp-range i {
+      font-size: 14.5px;
+      opacity: 0.8;
+    }
+    
+    .temp-min {
+      color: #2563eb;
+    }
+    
+    .wind-info {
+      color: #059669;
+      font-size: 14.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      flex-direction: column;
+    }
+    
+    .humidity-range {
+      color: #7c3aed;
+      font-size: 14.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+    
+    .legend-container {
+      position: absolute;
+      bottom: 100px;
+      left: 30px;
+      right: 30px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(5px);
+      padding: 5px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      border: 5px solid #e2e8f0;
+    }
+    
+    .legend-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #005a87;
+      margin-bottom: 15px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #4a5568;
+      transition: all 0.3s ease;
+    }
+    
+    .legend-item:hover {
+      transform: translateY(-2px);
+    }
+    
+    .legend-item img {
+      width: 45px;
+      height: 45px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    .legend-item span {
+      background: rgba(240, 244, 248, 0.9);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 950;
+    }
+    
+    .weather-selector {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      z-index: 1000;
+      display: none;
+      max-width: 600px;
+      width: 90%;
+    }
+    
+    .weather-selector.active {
+      display: block;
+    }
+    
+    .weather-selector h3 {
+      margin-bottom: 20px;
+      color: #1a202c;
+      font-size: 20px;
+      text-align: center;
+    }
+    
+    .weather-options {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+    
+    .weather-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .weather-option:hover {
+      border-color: #005a87;
+      background: #f7fafc;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    
+    .weather-option img {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 8px;
+    }
+    
+    .weather-option span {
+      font-size: 12px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+    
+    .overlay.active {
+      display: block;
+    }
+    
+    .editable {
+      cursor: text;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+    
+    .edit-mode .editable:hover {
+      background: rgba(0,90,135,0.1);
+    }
+    
+    .editable:focus {
+      outline: 2px solid #005a87;
+      background: white;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 80px 20px;
+      font-size: 18px;
+      color: #005a87;
+    }
+    
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 20px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #005a87;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .info-panel {
+      background: linear-gradient(135deg, #e6f7ff 0%, #d6f0ff 100%);
+      padding: 18px 24px;
+      border-radius: 15px;
+      margin-bottom: 25px;
+      border-left: 5px solid #1890ff;
+      box-shadow: 0 4px 15px rgba(24,144,255,0.15);
+    }
+    
+    .model-specs {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .model-specs.active {
+      display: block;
+    }
+    
+    .model-specs h4 {
+      color: #005a87;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .spec-item {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .spec-item i {
+      color: #1890ff;
+      width: 20px;
+    }
+    
+    .success-notification, .error-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      z-index: 1000;
+      animation: slideIn 0.5s ease;
+    }
+    
+    .success-notification {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      box-shadow: 0 10px 30px rgba(72,187,120,0.3);
+    }
+    
+    .error-notification {
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+      box-shadow: 0 10px 30px rgba(245,101,101,0.3);
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .success-notification.show, .error-notification.show {
+      display: flex;
+    }
+    
+    .debug-info {
+      background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+      padding: 12px 20px;
+      margin: 20px auto;
+      max-width: 1400px;
+      border-radius: 10px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .debug-info i {
+      color: #666;
+    }
+    
+    /* URL PANEL */
+    .url-panel {
+      background: #fdfdfd;
+      border: 1px dashed #cbd5e0;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: flex-end;
+    }
+    
+    .url-panel .btn-info {
+      grid-column: 1 / -1;
+      justify-content: center;
+    }
+    
+    /* THRESHOLD PANEL */
+    .threshold-panel {
+      background: #fdfdfd;
+      border: 1px dashed #cbd5e0;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+    
+    .threshold-rule-item {
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .threshold-rule-item span {
+      font-size: 14px;
+      color: #4a5568;
+    }
+    
+    .threshold-input {
+      width: 70px;
+      text-align: center;
+      padding: 8px;
+      border-radius: 6px;
+      border: 2px solid #e2e8f0;
+      font-size: 14px;
+    }
+    
+    .threshold-select {
+      flex-grow: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: 2px solid #e2e8f0;
+      font-size: 14px;
+    }
+    
+    /* CHART CONTAINER */
+    .chart-container-wrapper {
+      display: none;
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    .chart-container-wrapper.show {
+      display: block;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .chart-header h3 {
+      color: #005a87;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .chart-close-btn {
+      background: #f56565;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .chart-close-btn:hover {
+      background: #e53e3e;
+      transform: translateY(-2px);
+    }
+    
+    .chart-canvas-container {
+      position: relative;
+      height: 350px;
+      width: 100%;
+    }
+    
+    /* COMPARISON PANEL */
+    .comparison-panel {
+      display: none;
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .comparison-panel.show {
+      display: block;
+    }
+    
+    .comparison-header {
+      border-bottom: 3px solid #005a87;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+    }
+    
+    .comparison-header h2 {
+      color: #005a87;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+    }
+    
+    .comparison-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .model-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 12px;
+    }
+    
+    .model-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .model-checkbox:hover {
+      border-color: #005a87;
+      transform: translateY(-2px);
+    }
+    
+    .model-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .model-checkbox.checked {
+      border-color: #48bb78;
+      background: #f0fff4;
+    }
+    
+    .comparison-table-wrapper {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+    
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 1200px;
+    }
+    
+    .comparison-table thead {
+      background: linear-gradient(135deg, #005a87 0%, #004570 100%);
+      color: white;
+    }
+    
+    .comparison-table thead th {
+      padding: 12px 8px;
+      font-weight: 600;
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .comparison-table tbody tr {
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .comparison-table tbody tr:nth-child(even) {
+      background: #f7fafc;
+    }
+    
+    .comparison-table tbody td {
+      padding: 10px 8px;
+      text-align: center;
+      border-right: 1px solid #e2e8f0;
+    }
+    
+    .comparison-table tbody td.time-cell {
+      font-weight: 700;
+      background: #e6f7ff;
+      color: #005a87;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+    }
+    
+    .comparison-weather-icon {
+      width: 35px;
+      height: 35px;
+      margin: 0 auto;
+    }
+    
+    .comparison-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 25px;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 12px;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #005a87;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .stat-card h4 {
+      color: #4a5568;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    
+    .stat-card .stat-value {
+      color: #005a87;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .consensus-indicator {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .consensus-high {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .consensus-medium {
+      background: #fef3c7;
+      color: #78350f;
+    }
+    
+    .consensus-low {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+    
+    .alert-box {
+      background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+      border-left: 4px solid #f56565;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .alert-box.show {
+      display: block;
+    }
+    
+    .alert-box h4 {
+      color: #c53030;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .alert-box p {
+      color: #742a2a;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-notification" id="successNotif">
+    <i class="fas fa-check-circle"></i>
+    <span id="successMessage">Operasi berhasil!</span>
+  </div>
+  
+  <div class="error-notification" id="errorNotif">
+    <i class="fas fa-exclamation-circle"></i>
+    <span id="errorMessage">Terjadi kesalahan!</span>
+  </div>
+
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="https://i.postimg.cc/zXfgKPS3/logobmkg.png" alt="Logo BMKG">
+        <div class="header-title">
+          <h1>Dashboard Infografis Prakiraan Cuaca</h1>
+          <p>Stasiun Meteorologi Kelas IV Raja Haji Abdullah - Kabupaten Karimun</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="control-panel">
+    <div class="control-grid">
+      <div class="control-group">
+        <label for="modelSelect">
+          <i class="fas fa-cloud-sun"></i>
+          Pilih Model Prakiraan:
+        </label>
+        <select id="modelSelect">
+          <option value="">-- Pilih Model --</option>
+          <option value="bestmatch">Best Match</option>
+          <option value="arpege">ARPEGE</option>
+          <option value="bmkg">BMKG</option>
+          <option value="ecmwf">ECMWF IFS 0.25°</option>
+          <option value="ecmwf_ifs">ECMWF IFS HRES 9km</option>
+          <option value="ecmwf_aifs">ECMWF AIFS 0.25° Single</option>
+          <option value="gfs">GFS</option>
+          <option value="ukmo">UKMO 10km</option>
+          <option value="icon">ICON Global</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label for="forecastDate">
+          <i class="fas fa-calendar-alt"></i>
+          Tanggal Start Prakiraan (H+1):
+        </label>
+        <input type="date" id="forecastDate">
+        <span class="date-warning" id="dateWarning">⚠️ Tanggal yang dipilih di luar rentang H+1!</span>
+      </div>
+    </div>
+    
+    <div class="edit-toggle">
+      <label class="toggle-switch">
+        <input type="checkbox" id="editMode">
+        <span class="toggle-slider"></span>
+      </label>
+      <span style="font-weight: 500;">Mode Edit</span>
+      <span style="font-size: 14px; color: #718096;">Aktifkan untuk mengubah prakiraan cuaca</span>
+    </div>
+
+    <div class="url-panel">
+      <div class="control-group">
+        <label for="templateUrlInput">
+          <i class="fas fa-image"></i>
+          URL Template Utama (SVG/PNG):
+        </label>
+        <input type="text" id="templateUrlInput" placeholder="Biarkan kosong untuk default...">
+      </div>
+      <div class="control-group">
+        <label for="coverUrlInput">
+          <i class="fas fa-file-image"></i>
+          URL Template Cover (SVG/PNG):
+        </label>
+        <input type="text" id="coverUrlInput" placeholder="Biarkan kosong untuk default...">
+      </div>
+      <button class="btn btn-info btn-sm" onclick="applyTemplateUrls()">
+        <i class="fas fa-check"></i>
+        Terapkan Template
+      </button>
+    </div>
+    
+    <div class="threshold-panel">
+      <div class="edit-toggle" style="margin-bottom: 0;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="thresholdMode">
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-weight: 500;">Mode Threshold Manual</span>
+        <span style="font-size: 14px; color: #718096;">Aktifkan untuk menimpa cuaca berdasarkan curah hujan.</span>
+      </div>
+      
+      <div id="threshold-rules-container" style="display: none; margin-top: 15px;">
+        <p style="font-size: 14px; color: #4a5568; margin-bottom: 15px;">
+          Aturan dieksekusi dari atas ke bawah. Cuaca akan diubah jika curah hujan (mm) <strong>≤</strong> nilai yang dimasukkan.
+        </p>
+        
+        <div id="threshold-rules-list"></div>
+        
+        <button class="btn btn-success btn-sm" onclick="addThresholdRule()" style="margin-top: 10px;">
+          <i class="fas fa-plus"></i>
+          Tambah Aturan
+        </button>
+      </div>
+    </div>
+    
+    <div class="info-panel">
+      <div id="defaultInfo" style="display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-info-circle" style="font-size: 24px; color: #1890ff;"></i>
+        <p style="color: #0050b3; font-size: 15px; margin: 0; font-weight: 500;">Pilih model prakiraan untuk melihat spesifikasi dan data cuaca</p>
+      </div>
+      
+      <div class="model-specs" id="modelSpecs">
+        <h4 id="modelTitle">Spesifikasi Model</h4>
+        <div id="modelDetails"></div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button class="btn btn-primary" onclick="tampilkanCuaca()">
+        <i class="fas fa-search"></i>
+        Tampilkan Prakiraan
+      </button>
+      <button class="btn btn-warning" onclick="toggleComparison()" id="comparisonButton" style="display:none;">
+        <i class="fas fa-balance-scale"></i>
+        Panel Perbandingan
+      </button>
+      <button class="btn btn-info" onclick="generateCover()" style="display:none;" id="coverButton">
+        <i class="fas fa-file-alt"></i>
+        Generate Cover
+      </button>
+      <button class="btn btn-success" id="downloadButton" onclick="downloadImage()" style="display:none;">
+        <i class="fas fa-download"></i>
+        Download Gambar
+      </button>
+      <button class="btn btn-success btn-sm" onclick="exportToCSV()" style="display:none;" id="exportButton">
+        <i class="fas fa-file-csv"></i>
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- CHART CONTAINER -->
+  <div class="chart-container-wrapper" id="precipitationChartContainer">
+    <div class="chart-header">
+      <h3>
+        <i class="fas fa-chart-bar"></i>
+        Grafik Curah Hujan (mm) - Model: <span id="chartModelName">N/A</span>
+      </h3>
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <div class="control-group" style="margin-bottom: 0;">
+          <label for="kecamatanChartSelect" style="font-weight: 600;">Pilih Kecamatan:</label>
+          <select id="kecamatanChartSelect"></select>
+        </div>
+        <button class="chart-close-btn" onclick="closeChart()">
+          <i class="fas fa-times"></i>
+          Tutup
+        </button>
+      </div>
+    </div>
+    
+    <div class="chart-canvas-container">
+      <canvas id="precipitationChart"></canvas>
+    </div>
+  </div>
+
+  <!-- COMPARISON PANEL -->
+  <div class="comparison-panel" id="comparisonPanel">
+    <div class="comparison-header">
+      <h2>
+        <i class="fas fa-balance-scale"></i>
+        Panel Perbandingan Multi-Model Komprehensif
+      </h2>
+      <p style="color: #718096; margin-top: 8px;">Bandingkan semua parameter cuaca dari berbagai model untuk lokasi yang sama</p>
+    </div>
+    
+    <div class="comparison-controls">
+      <div class="control-group">
+        <label>
+          <i class="fas fa-map-marker-alt"></i>
+          Pilih Kecamatan:
+        </label>
+        <select id="comparisonKecamatanSelect"></select>
+      </div>
+      
+      <div class="control-group">
+        <label>
+          <i class="fas fa-clock"></i>
+          Pilih Waktu:
+        </label>
+        <select id="comparisonTimeSelect">
+          <option value="all">Semua Periode (9 waktu)</option>
+          <option value="0">07:00 WIB (Hari 1)</option>
+          <option value="1">10:00 WIB (Hari 1)</option>
+          <option value="2">13:00 WIB (Hari 1)</option>
+          <option value="3">16:00 WIB (Hari 1)</option>
+          <option value="4">19:00 WIB (Hari 1)</option>
+          <option value="5">22:00 WIB (Hari 1)</option>
+          <option value="6">01:00 WIB (Hari 2)</option>
+          <option value="7">04:00 WIB (Hari 2)</option>
+          <option value="8">07:00 WIB (Hari 2)</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="model-selector">
+      <label style="width: 100%; font-weight: 700; color: #005a87; margin-bottom: 10px;">
+        <i class="fas fa-layer-group"></i>
+        Pilih Model untuk Dibandingkan (minimal 2):
+      </label>
+      <div class="model-checkbox" id="comp-bestmatch">
+        <input type="checkbox" value="bestmatch" onchange="updateComparison()">
+        <span>Best Match</span>
+      </div>
+      <div class="model-checkbox" id="comp-arpege">
+        <input type="checkbox" value="arpege" onchange="updateComparison()">
+        <span>ARPEGE</span>
+      </div>
+      <div class="model-checkbox" id="comp-bmkg">
+        <input type="checkbox" value="bmkg" onchange="updateComparison()">
+        <span>BMKG</span>
+      </div>
+      <div class="model-checkbox" id="comp-ecmwf">
+        <input type="checkbox" value="ecmwf" onchange="updateComparison()">
+        <span>ECMWF IFS 0.25°</span>
+      </div>
+      <div class="model-checkbox" id="comp-ecmwf_ifs">
+        <input type="checkbox" value="ecmwf_ifs" onchange="updateComparison()">
+        <span>ECMWF HRES 9km</span>
+      </div>
+      <div class="model-checkbox" id="comp-ecmwf_aifs">
+        <input type="checkbox" value="ecmwf_aifs" onchange="updateComparison()">
+        <span>ECMWF AIFS</span>
+      </div>
+      <div class="model-checkbox" id="comp-gfs">
+        <input type="checkbox" value="gfs" onchange="updateComparison()">
+        <span>GFS</span>
+      </div>
+      <div class="model-checkbox" id="comp-ukmo">
+        <input type="checkbox" value="ukmo" onchange="updateComparison()">
+        <span>UKMO 10km</span>
+      </div>
+      <div class="model-checkbox" id="comp-icon">
+        <input type="checkbox" value="icon" onchange="updateComparison()">
+        <span>ICON Global</span>
+      </div>
+    </div>
+    
+    <div class="alert-box" id="comparisonAlert">
+      <h4><i class="fas fa-exclamation-triangle"></i> Peringatan</h4>
+      <p id="comparisonAlertText"></p>
+    </div>
+    
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table" id="comparisonTable">
+        <thead id="comparisonTableHead"></thead>
+        <tbody id="comparisonTableBody"></tbody>
+      </table>
+    </div>
+    
+    <div class="comparison-stats" id="comparisonStats"></div>
+    
+    <div style="margin-top: 20px; display: flex; gap: 15px;">
+      <button class="btn btn-success btn-sm" onclick="exportComparisonCSV()">
+        <i class="fas fa-file-csv"></i>
+        Export Perbandingan CSV
+      </button>
+      <button class="btn btn-info btn-sm" onclick="screenshotComparison()">
+        <i class="fas fa-camera"></i>
+        Screenshot Panel
+      </button>
+    </div>
+  </div>
+
+  <div class="template-container">
+    <div class="template-wrapper">
+      <div class="cover-template" id="coverTemplate">
+        <div class="cover-period" id="coverPeriod"></div>
+      </div>
+      
+      <div class="template" id="weatherTemplate">
+        <div class="table-period" id="tablePeriod"></div>
+        <div class="weather-table-container">
+          <table class="weather-table" id="weatherTable">
+            <thead id="tableHeader"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="legend-container">
+          <div class="legend-title">LEGENDA</div>
+          <div class="legend-items">
+            <div class="legend-item"><img src="https://i.postimg.cc/NF7bS6vt/Cerah.png" alt="Cerah"><span>Cerah</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/XNw2rbGP/CerahBerawan.png" alt="Cerah Berawan"><span>Cerah Berawan</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/fbJ2ySm7/Berawan.png" alt="Berawan"><span>Berawan</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/vTd30PjX/BerawanTebal.png" alt="Berawan Tebal"><span>Berawan Tebal</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/KvfJ5D5r/HujanRingan.png" alt="Hujan Ringan"><span>Hujan Ringan</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/mrzjBfW8/HujanSedang.png" alt="Hujan Sedang"><span>Hujan Sedang</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/CLScDQbx/HujanLebat.png" alt="Hujan Lebat"><span>Hujan Lebat</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/HkL3v8ZG/HujanPetir.png" alt="Hujan Petir"><span>Hujan Petir</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/13YBkR28/Petir.png" alt="Petir"><span>Petir</span></div>
+            <div class="legend-item"><img src="https://i.postimg.cc/6Qk0Qj9w/UdaraKabur.png" alt="Udara Kabur"><span>Udara Kabur</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="overlay" id="overlay" onclick="closeWeatherSelector()"></div>
+      <div class="weather-selector" id="weatherSelector">
+        <h3>Pilih Kondisi Cuaca</h3>
+        <div class="weather-options" id="weatherOptionsContainer"></div>
+      </div>
+      
+      <div class="loading" id="loading" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p>Mengambil data cuaca dari server...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="debug-info" id="debugInfo">
+    <i class="fas fa-terminal"></i>
+    <span>Status: Pilih model untuk melihat prakiraan cuaca</span>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <script>
+    // ==================== DATA STORAGE ====================
+    let currentForecastData = [];
+    let allModelsData = {}; // Menyimpan data SEMUA model
+    let currentModel = '';
+    let fetchErrors = [];
+    let editModeActive = false;
+    let thresholdModeActive = false;
+    let currentEditCell = null;
+    let currentChart = null;
+    let customStartDate = null;
+    
+    // URL Template Default
+    let defaultTemplateUrl = 'https://raw.githubusercontent.com/sawal1512/svg-assets/main/TemplatePrakicuKabKarimun.svg';
+    let defaultCoverUrl = 'https://raw.githubusercontent.com/sawal1512/svg-assets/main/CoverPrakicuKabKarimun.svg';
+
+    // ==================== DATA MASTER (DARI INDEX COPY - KOORDINAT AKURAT) ====================
+    const kecamatanList = [
+      { id: "belat", name: "Belat", lat: 0.814486, lon: 103.486319, codes: ["21.02.12.2001", "21.02.12.2002", "21.02.12.2003", "21.02.12.2004", "21.02.12.2005", "21.02.12.2006"] },
+      { id: "buru", name: "Buru", lat: 0.885029, lon: 103.503916, codes: ["21.02.06.1001", "21.02.06.1002", "21.02.06.2003", "21.02.06.2004"] },
+      { id: "durai", name: "Durai", lat: 0.511637, lon: 103.606076, codes: ["21.02.09.2002", "21.02.09.2003", "21.02.09.2004", "21.02.09.2005"] },
+      { id: "karimun", name: "Karimun", lat: 1.001774, lon: 103.431148, codes: ["21.02.03.1001", "21.02.03.1002", "21.02.03.1003", "21.02.03.1006", "21.02.03.1007", "21.02.03.1008"] },
+      { id: "kundur", name: "Kundur", lat: 0.680794, lon: 103.444237, codes: ["21.02.02.1001", "21.02.02.1002", "21.02.02.2004", "21.02.02.2005", "21.02.02.2006", "21.02.02.1009"] },
+      { id: "kundur-barat", name: "Kundur Barat", lat: 0.772581, lon: 103.372187, codes: ["21.02.08.1001", "21.02.08.2002", "21.02.08.2003", "21.02.08.2004", "21.02.08.2005"] },
+      { id: "kundur-utara", name: "Kundur Utara", lat: 0.779328, lon: 103.467678, codes: ["21.02.07.2003", "21.02.07.2004", "21.02.07.2010", "21.02.07.1012", "21.02.07.2013"] },
+      { id: "meral", name: "Meral", lat: 1.008530, lon: 103.391953, codes: ["21.02.04.1001", "21.02.04.1002", "21.02.04.1003", "21.02.04.1006", "21.02.04.1007", "21.02.04.1008"] },
+      { id: "meral-barat", name: "Meral Barat", lat: 1.059849, lon: 103.336163, codes: ["21.02.10.1001", "21.02.10.1002", "21.02.10.2003", "21.02.10.2004"] },
+      { id: "moro", name: "Moro", lat: 0.763301, lon: 103.710635, codes: ["21.02.01.1003", "21.02.01.2004", "21.02.01.2009", "21.02.01.1010", "21.02.01.2014"] },
+      { id: "selat-gelam", name: "Selat Gelam", lat: 0.954946, lon: 103.442353, codes: ["21.02.13.2001", "21.02.13.2002", "21.02.13.2003"] },
+      { id: "sugie-besar", name: "Sugie Besar", lat: 0.796257, lon: 103.800434, codes: ["21.02.14.2001", "21.02.14.2002", "21.02.14.2003", "21.02.14.2004", "21.02.14.2005", "21.02.14.2006", "21.02.14.2007"] },
+      { id: "tebing", name: "Tebing", lat: 1.043715, lon: 103.395386, codes: ["21.02.05.1001", "21.02.05.1002", "21.02.05.1003", "21.02.05.1004", "21.02.05.2007", "21.02.05.1008"] },
+      { id: "ungar", name: "Ungar", lat: 0.652987, lon: 103.483033, codes: ["21.02.11.1001", "21.02.11.2002", "21.02.11.2003", "21.02.11.2004"] }
+    ];
+    
+    const weatherIcons = {
+      "Cerah": "https://i.postimg.cc/NF7bS6vt/Cerah.png",
+      "Cerah Berawan": "https://i.postimg.cc/XNw2rbGP/CerahBerawan.png",
+      "Berawan": "https://i.postimg.cc/fbJ2ySm7/Berawan.png",
+      "Berawan Tebal": "https://i.postimg.cc/vTd30PjX/BerawanTebal.png",
+      "Hujan Ringan": "https://i.postimg.cc/KvfJ5D5r/HujanRingan.png",
+      "Hujan Sedang": "https://i.postimg.cc/mrzjBfW8/HujanSedang.png",
+      "Hujan Lebat": "https://i.postimg.cc/CLScDQbx/HujanLebat.png",
+      "Hujan Petir": "https://i.postimg.cc/HkL3v8ZG/HujanPetir.png",
+      "Petir": "https://i.postimg.cc/13YBkR28/Petir.png",
+      "Udara Kabur": "https://i.postimg.cc/6Qk0Qj9w/UdaraKabur.png",
+    };
+    
+    const modelApiKeyMap = {
+      "bestmatch": "best_match",
+      "arpege": "meteofrance_arpege_world",
+      "bmkg": "bmkg",
+      "ecmwf": "ecmwf_ifs025",
+      "ecmwf_ifs": "ecmwf_ifs",
+      "ecmwf_aifs": "ecmwf_aifs025_single",
+      "gfs": "gfs_global",
+      "ukmo": "ukmo_global_deterministic_10km",
+      "icon": "icon_global"
+    };
+
+    const modelSpecs = {
+      "bestmatch": { title: "Best Match Model", details: [ { icon: "fa-globe", text: "Kombinasi model terbaik (DWD, GFS, ECMWF, dll)" }, { icon: "fa-clock", text: "Update setiap 1 jam" }, { icon: "fa-th", text: "Resolusi: 0.25° (±28 km)" } ] },
+      "arpege": { title: "ARPEGE (Météo-France)", details: [ { icon: "fa-flag", text: "Model global dari Prancis" }, { icon: "fa-clock", text: "Update 4x sehari" }, { icon: "fa-th", text: "Resolusi: 0.5° (±55 km)" } ] },
+      "bmkg": { title: "BMKG (Indonesia)", details: [ { icon: "fa-flag", text: "Model resmi Indonesia" }, { icon: "fa-clock", text: "Update 2x sehari" }, { icon: "fa-th", text: "Resolusi: Per kecamatan/kelurahan" } ] },
+      "ecmwf": { title: "ECMWF IFS 0.25° (European Centre)", details: [ { icon: "fa-trophy", text: "Model cuaca paling akurat di dunia" }, { icon: "fa-clock", text: "Update 2x sehari (00, 12 UTC)" }, { icon: "fa-th", text: "Resolusi: 0.25° (±28 km)" } ] },
+      "ecmwf_ifs": { title: "ECMWF IFS HRES 9km", details: [ { icon: "fa-trophy", text: "Model resolusi tertinggi dari ECMWF" }, { icon: "fa-clock", text: "Update 2x sehari (00, 12 UTC)" }, { icon: "fa-th", text: "Resolusi: 0.1° (±9 km)" } ] },
+      "ecmwf_aifs": { title: "ECMWF AIFS 0.25° Single", details: [ { icon: "fa-cogs", text: "Model eksperimental AI dari ECMWF" }, { icon: "fa-clock", text: "Update 1x sehari" }, { icon: "fa-th", text: "Resolusi: 0.25° (±28 km)" } ] },
+      "gfs": { title: "GFS (NOAA Amerika)", details: [ { icon: "fa-flag", text: "Model dari NOAA Amerika Serikat" }, { icon: "fa-clock", text: "Update 4x sehari" }, { icon: "fa-th", text: "Resolusi: 0.25° (±28 km)" } ] },
+      "ukmo": { title: "UKMO 10km (Met Office UK)", details: [ { icon: "fa-flag", text: "Model dari Inggris Raya" }, { icon: "fa-clock", text: "Update 2x sehari" }, { icon: "fa-th", text: "Resolusi: 0.1° (±10 km)" } ] },
+      "icon": { title: "ICON Global (DWD Jerman)", details: [ { icon: "fa-flag", text: "Model dari DWD Jerman" }, { icon: "fa-clock", text: "Update 4x sehari" }, { icon: "fa-th", text: "Resolusi: 0.125° (±13 km)" } ] }
+    };
+    
+    const weatherCodeMap = {
+      0: "Cerah", 1: "Cerah Berawan", 2: "Berawan", 3: "Berawan Tebal",
+      45: "Udara Kabur", 48: "Udara Kabur", 51: "Hujan Ringan", 53: "Hujan Sedang",
+      55: "Hujan Lebat", 61: "Hujan Ringan", 63: "Hujan Sedang", 65: "Hujan Lebat",
+      80: "Hujan Ringan", 81: "Hujan Sedang", 82: "Hujan Lebat", 95: "Hujan Petir", 97: "Hujan Petir"
+    };
+    
+    const windDirectionAbbr = {
+      "Utara": "U", "Timur Laut": "TL", "Timur": "T", "Tenggara": "TG",
+      "Selatan": "S", "Barat Daya": "BD", "Barat": "B", "Barat Laut": "BL", "Variabel": "Var"
+    };
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set default date to tomorrow (H+1)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('forecastDate').valueAsDate = tomorrow;
+      
+      // Date validation
+      document.getElementById('forecastDate').addEventListener('change', function(e) {
+        const selected = new Date(e.target.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxDate = new Date(today);
+        maxDate.setDate(maxDate.getDate() + 3);
+        
+        const warning = document.getElementById('dateWarning');
+        if (selected < today || selected > maxDate) {
+          warning.classList.add('show');
+        } else {
+          warning.classList.remove('show');
+          customStartDate = selected;
+        }
+      });
+      
+      document.getElementById('editMode').addEventListener('change', function(e) {
+        editModeActive = e.target.checked;
+        document.getElementById('weatherTable').classList.toggle('edit-mode', editModeActive);
+      });
+      
+      document.getElementById('thresholdMode').addEventListener('change', function(e) {
+        thresholdModeActive = e.target.checked;
+        document.getElementById('threshold-rules-container').style.display = thresholdModeActive ? 'block' : 'none';
+        if (thresholdModeActive && document.getElementById('threshold-rules-list').childElementCount === 0) {
+          addThresholdRule(1.0, "Berawan");
+          addThresholdRule(2.0, "Berawan Tebal");
+          addThresholdRule(5.0, "Hujan Ringan");
+          addThresholdRule(20.0, "Hujan Sedang");
+          addThresholdRule(9999, "Hujan Lebat");
+        }
+      });
+
+      document.getElementById('modelSelect').addEventListener('change', function(e) {
+        const model = e.target.value;
+        const defaultInfo = document.getElementById('defaultInfo');
+        const modelSpecsDiv = document.getElementById('modelSpecs');
+        
+        if (model && modelSpecs[model]) {
+          defaultInfo.style.display = 'none';
+          modelSpecsDiv.classList.add('active');
+          document.getElementById('modelTitle').textContent = modelSpecs[model].title;
+          
+          let detailsHtml = '';
+          modelSpecs[model].details.forEach(item => {
+            detailsHtml += `<div class="spec-item"><i class="fas ${item.icon}"></i><span>${item.text}</span></div>`;
+          });
+          document.getElementById('modelDetails').innerHTML = detailsHtml;
+        } else {
+          defaultInfo.style.display = 'flex';
+          modelSpecsDiv.classList.remove('active');
+        }
+      });
+      
+      document.getElementById('kecamatanChartSelect').addEventListener('change', displayPrecipitationChart);
+      document.getElementById('comparisonKecamatanSelect').addEventListener('change', updateComparison);
+      document.getElementById('comparisonTimeSelect').addEventListener('change', updateComparison);
+
+      populateKecamatanDropdowns();
+      populateWeatherSelector();
+      
+      const templateStyle = window.getComputedStyle(document.getElementById('weatherTemplate'));
+      defaultTemplateUrl = templateStyle.backgroundImage.slice(4, -1).replace(/"/g, "");
+      const coverStyle = window.getComputedStyle(document.getElementById('coverTemplate'));
+      defaultCoverUrl = coverStyle.backgroundImage.slice(4, -1).replace(/"/g, "");
+    });
+
+    // ==================== HELPER FUNCTIONS ====================
+    function showSuccess(message) {
+      const notif = document.getElementById('successNotif');
+      document.getElementById('successMessage').textContent = message;
+      notif.classList.add('show');
+      setTimeout(() => notif.classList.remove('show'), 3000);
+    }
+    
+    function showError(message) {
+      const notif = document.getElementById('errorNotif');
+      document.getElementById('errorMessage').textContent = message;
+      notif.classList.add('show');
+      setTimeout(() => notif.classList.remove('show'), 5000);
+    }
+    
+    function updateDebugInfo(message) {
+      document.getElementById('debugInfo').innerHTML = `<i class="fas fa-terminal"></i> <span>Status: ${message}</span>`;
+    }
+    
+    function getWindDirection(degree) {
+      if (degree === undefined || degree === null) return "Variabel";
+      const directions = ["Utara", "Timur Laut", "Timur", "Tenggara", "Selatan", "Barat Daya", "Barat", "Barat Laut"];
+      const index = Math.round(degree / 45) % 8;
+      return directions[index];
+    }
+    
+    function populateKecamatanDropdowns() {
+      const selects = ['kecamatanChartSelect', 'comparisonKecamatanSelect'];
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '';
+        kecamatanList.forEach(loc => {
+          const option = document.createElement('option');
+          option.value = loc.id;
+          option.textContent = loc.name;
+          select.appendChild(option);
+        });
+      });
+    }
+
+    function populateWeatherSelector() {
+      const container = document.getElementById('weatherOptionsContainer');
+      container.innerHTML = '';
+      Object.entries(weatherIcons).forEach(([desc, url]) => {
+        container.innerHTML += `
+          <div class="weather-option" onclick="selectWeather('${desc}', '${url}')">
+            <img src="${url}" alt="${desc}">
+            <span>${desc}</span>
+          </div>
+        `;
+      });
+    }
+    
+    function applyTemplateUrls() {
+      const templateUrl = document.getElementById('templateUrlInput').value;
+      const coverUrl = document.getElementById('coverUrlInput').value;
+      
+      document.getElementById('weatherTemplate').style.backgroundImage = `url('${templateUrl || defaultTemplateUrl}')`;
+      document.getElementById('coverTemplate').style.backgroundImage = `url('${coverUrl || defaultCoverUrl}')`;
+      
+      showSuccess('URL Template kustom berhasil diterapkan!');
+    }
+    
+    function getThresholdRules() {
+      const rules = [];
+      document.querySelectorAll('#threshold-rules-list .threshold-rule-item').forEach(item => {
+        const value = parseFloat(item.querySelector('.threshold-input').value);
+        const weather = item.querySelector('.threshold-select').value;
+        if (!isNaN(value)) {
+          rules.push({ value, weather });
+        }
+      });
+      return rules.sort((a, b) => a.value - b.value);
+    }
+    
+    function addThresholdRule(value = 1.0, weather = "Hujan Ringan") {
+      const list = document.getElementById('threshold-rules-list');
+      const item = document.createElement('div');
+      item.className = 'threshold-rule-item';
+      
+      let optionsHtml = '';
+      Object.keys(weatherIcons).forEach(w => {
+        optionsHtml += `<option value="${w}" ${w === weather ? 'selected' : ''}>${w}</option>`;
+      });
+      
+      item.innerHTML = `
+        <span>Jika (mm) ≤</span>
+        <input type="number" step="0.1" value="${value}" class="threshold-input">
+        <select class="threshold-select">${optionsHtml}</select>
+        <button class="btn-danger-sm" onclick="removeThresholdRule(this)"><i class="fas fa-trash"></i></button>
+      `;
+      list.appendChild(item);
+    }
+    
+    function removeThresholdRule(buttonEl) {
+      buttonEl.parentElement.remove();
+    }
+
+    // ==================== DATA FETCHING (ANTI-ERROR LOGIC) ====================
+    async function fetchWeatherDataForLocation(location) {
+      if (currentModel === 'bmkg') {
+        return fetchBmkgData(location);
+      }
+      
+      try {
+        const baseParams = `latitude=${location.lat}&longitude=${location.lon}&timezone=Asia%2FJakarta`;
+        const baseHourly = ["temperature_2m", "relative_humidity_2m", "precipitation", "weather_code", "wind_speed_10m", "wind_direction_10m"];
+        const modelApiKeys = Object.values(modelApiKeyMap).filter(key => key !== 'bmkg');
+        const hourlyParams = baseHourly.join(',');
+        const models = modelApiKeys.join(',');
+        const apiUrl = `https://api.open-meteo.com/v1/forecast?${baseParams}&hourly=${hourlyParams}&models=${models}&forecast_days=3`;
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        if (!data || !data.hourly) throw new Error('Invalid data');
+        
+        return data;
+      } catch (error) {
+        console.error(`Failed to fetch Open-Meteo data for ${location.name}:`, error);
+        fetchErrors.push({ location: location.name, error: error.message });
+        return null;
+      }
+    }
+    
+    async function fetchBmkgData(location) {
+      for (const code of location.codes) {
+        try {
+          const directUrl = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${code}`;
+          const response = await fetch(directUrl);
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.data && data.data.length > 0 && data.data[0].cuaca) {
+              return data;
+            }
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+      
+      console.error(`All BMKG codes failed for ${location.name}`);
+      fetchErrors.push({ location: location.name, error: "BMKG data not found" });
+      return null;
+    }
+    
+    function processWeatherData(apiData, model, location) {
+      if (!apiData) return null;
+      
+      let forecasts = [];
+      const modelKey = modelApiKeyMap[model];
+      
+      try {
+        if (model === 'bmkg') {
+          if (apiData.data && apiData.data.length > 0) {
+            apiData.data.forEach((item) => {
+              if (item.cuaca && Array.isArray(item.cuaca)) {
+                item.cuaca.forEach((timeGroup) => {
+                  if (Array.isArray(timeGroup)) {
+                    timeGroup.forEach((f) => {
+                      if (f.local_datetime) {
+                        forecasts.push({
+                          time: new Date(f.local_datetime.replace(" ", "T")),
+                          temperature: parseFloat(f.t) || null,
+                          humidity: parseInt(f.hu) || null,
+                          precipitation: parseFloat(f.tp) || 0,
+                          weatherCode: f.weather || 0,
+                          weatherDesc: f.weather_desc || weatherCodeMap[f.weather] || "Berawan",
+                          windSpeed: parseFloat(f.ws) || null,
+                          windDirection: getWindDirection(f.wd_deg)
+                        });
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+        } else {
+          const hourlyData = apiData.hourly;
+          if (!hourlyData || !hourlyData.time) return null;
+          
+          const timeKey = 'time';
+          const tempKey = hourlyData[`temperature_2m_${modelKey}`] ? `temperature_2m_${modelKey}` : 'temperature_2m';
+          const humKey = hourlyData[`relative_humidity_2m_${modelKey}`] ? `relative_humidity_2m_${modelKey}` : 'relative_humidity_2m';
+          const precipKey = hourlyData[`precipitation_${modelKey}`] ? `precipitation_${modelKey}` : 'precipitation';
+          const codeKey = hourlyData[`weather_code_${modelKey}`] ? `weather_code_${modelKey}` : 'weather_code';
+          const windSpdKey = hourlyData[`wind_speed_10m_${modelKey}`] ? `wind_speed_10m_${modelKey}` : 'wind_speed_10m';
+          const windDirKey = hourlyData[`wind_direction_10m_${modelKey}`] ? `wind_direction_10m_${modelKey}` : 'wind_direction_10m';
+
+          const rules = thresholdModeActive ? getThresholdRules() : [];
+          
+          hourlyData.time.forEach((time, i) => {
+            const precip = hourlyData[precipKey] ? hourlyData[precipKey][i] : 0;
+            let weatherCode = hourlyData[codeKey] ? hourlyData[codeKey][i] : 0;
+            let weatherDesc = weatherCodeMap[weatherCode] || "Berawan";
+
+            if (thresholdModeActive && precip !== null) {
+              for (const rule of rules) {
+                if (precip <= rule.value) {
+                  weatherDesc = rule.weather;
+                  break;
+                }
+              }
+            }
+
+            forecasts.push({
+              time: new Date(time),
+              temperature: hourlyData[tempKey] ? hourlyData[tempKey][i] : null,
+              humidity: hourlyData[humKey] ? hourlyData[humKey][i] : null,
+              precipitation: precip,
+              weatherCode: weatherCode,
+              weatherDesc: weatherDesc,
+              windSpeed: hourlyData[windSpdKey] ? hourlyData[windSpdKey][i] : null,
+              windDirection: getWindDirection(hourlyData[windDirKey] ? hourlyData[windDirKey][i] : null)
+            });
+          });
+        }
+        
+        forecasts.sort((a, b) => a.time - b.time);
+        
+        const startDate = customStartDate || (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + 1);
+          return d;
+        })();
+        startDate.setHours(7, 0, 0, 0);
+        
+        const selectedForecasts = [];
+        const targetTimes = [7, 10, 13, 16, 19, 22, 1, 4, 7];
+        
+        for (let i = 0; i < 9; i++) {
+          const targetTime = new Date(startDate);
+          if (i >= 6) {
+            targetTime.setDate(targetTime.getDate() + 1);
+          }
+          targetTime.setHours(targetTimes[i], 0, 0, 0);
+          
+          let closestForecast = forecasts.find(fc => 
+            fc.time.getFullYear() === targetTime.getFullYear() &&
+            fc.time.getMonth() === targetTime.getMonth() &&
+            fc.time.getDate() === targetTime.getDate() &&
+            fc.time.getHours() === targetTime.getHours()
+          );
+          
+          if (!closestForecast) {
+            let minDiff = Infinity;
+            forecasts.forEach(fc => {
+              const diff = Math.abs(fc.time - targetTime);
+              if (diff < minDiff && diff < (1.5 * 60 * 60 * 1000)) {
+                minDiff = diff;
+                closestForecast = fc;
+              }
+            });
+          }
+          
+          if (closestForecast) {
+            selectedForecasts.push({ ...closestForecast, time: targetTime });
+          } else {
+            selectedForecasts.push({
+              time: targetTime, temperature: null, humidity: null, precipitation: null,
+              weatherCode: null, weatherDesc: "N/A", windSpeed: null, windDirection: null
+            });
+          }
+        }
+        
+        return selectedForecasts;
+      } catch (error) {
+        console.error(`Error processing data for ${location.name} (Model: ${model}):`, error);
+        return null;
+      }
+    }
+    
+    function calculateStats(forecasts) {
+      if (!forecasts || forecasts.length === 0) {
+        return { tempMin: null, tempMax: null, humidityMin: null, humidityMax: null, windMin: null, windMax: null, windDirFreq: null };
+      }
+      
+      const validTemps = forecasts.filter(f => f.temperature !== null).map(f => f.temperature);
+      const validHumidity = forecasts.filter(f => f.humidity !== null).map(f => f.humidity);
+      const validWind = forecasts.filter(f => f.windSpeed !== null).map(f => f.windSpeed);
+      const windDirs = forecasts.filter(f => f.windDirection !== null && f.windDirection !== "Variabel").map(f => f.windDirection);
+      
+      const windMin = validWind.length > 0 ? Math.round(Math.min(...validWind)) : null;
+      const windMax = validWind.length > 0 ? Math.round(Math.max(...validWind)) : null;
+      
+      let windDirFreq = "Var";
+      if (windDirs.length > 0) {
+        const dirCounts = {};
+        windDirs.forEach(dir => { dirCounts[dir] = (dirCounts[dir] || 0) + 1; });
+        windDirFreq = Object.keys(dirCounts).reduce((a, b) => dirCounts[a] > dirCounts[b] ? a : b);
+      }
+      
+      return {
+        tempMin: validTemps.length > 0 ? Math.round(Math.min(...validTemps)) : null,
+        tempMax: validTemps.length > 0 ? Math.round(Math.max(...validTemps)) : null,
+        humidityMin: validHumidity.length > 0 ? Math.round(Math.min(...validHumidity)) : null,
+        humidityMax: validHumidity.length > 0 ? Math.round(Math.max(...validHumidity)) : null,
+        windMin: windMin,
+        windMax: windMax,
+        windDirFreq: windDirFreq
+      };
+    }
+
+    // ==================== MAIN DISPLAY FUNCTION ====================
+    async function tampilkanCuaca() {
+      const model = document.getElementById('modelSelect').value;
+      if (!model) {
+        showError('Silakan pilih model prakiraan terlebih dahulu!');
+        return;
+      }
+      
+      currentModel = model;
+      fetchErrors = [];
+      
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('weatherTemplate').classList.remove('active');
+      document.getElementById('coverTemplate').classList.remove('active');
+      document.getElementById('precipitationChartContainer').classList.remove('show');
+      
+      updateDebugInfo(`Mengambil data ${model.toUpperCase()} untuk 14 kecamatan...`);
+      
+      const fetchPromises = kecamatanList.map(async (location, index) => {
+        const data = await fetchWeatherDataForLocation(location);
+        updateDebugInfo(`Progress: ${index + 1}/14 kecamatan selesai di-fetch...`);
+        return {
+          location: location,
+          apiData: data,
+          forecasts: null,
+          stats: null
+        };
+      });
+      
+      const results = await Promise.all(fetchPromises);
+      currentForecastData = results.filter(r => r.apiData !== null);
+      
+      // Simpan ke allModelsData
+      if (!allModelsData[model]) {
+        allModelsData[model] = {};
+      }
+      currentForecastData.forEach(locData => {
+        allModelsData[model][locData.location.id] = locData;
+      });
+      
+      if (currentForecastData.length === 0) {
+        document.getElementById('loading').style.display = 'none';
+        showError('Gagal mengambil data cuaca. Silakan coba lagi.');
+        updateDebugInfo('Gagal mengambil data dari semua lokasi');
+        return;
+      }
+      
+      displayWeatherTable(currentModel);
+      updatePeriodInfo();
+      displayPrecipitationChart();
+      
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('weatherTemplate').classList.add('active');
+      document.getElementById('downloadButton').style.display = 'inline-flex';
+      document.getElementById('coverButton').style.display = 'inline-flex';
+      document.getElementById('exportButton').style.display = 'inline-flex';
+      document.getElementById('comparisonButton').style.display = 'inline-flex';
+      
+      if (fetchErrors.length > 0) {
+        showError(`Berhasil dengan ${fetchErrors.length} lokasi gagal diambil datanya`);
+      } else {
+        showSuccess(`Prakiraan cuaca berhasil ditampilkan untuk 14 kecamatan`);
+      }
+      
+      updateDebugInfo(`Selesai! ${currentForecastData.length}/14 kecamatan berhasil ditampilkan`);
+    }
+    
+    function updatePeriodInfo() {
+      const startDate = customStartDate || (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d;
+      })();
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 1);
+      
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      const startStr = startDate.toLocaleDateString('id-ID', options);
+      const endStr = endDate.toLocaleDateString('id-ID', options);
+      
+      const periodText = `Berlaku Mulai : ${startStr} / 07:00 WIB Hingga : ${endStr} / 07:00 WIB`;
+      document.getElementById('tablePeriod').innerHTML = periodText;
+    }
+    
+    function displayWeatherTable(model) {
+      const tableHeader = document.getElementById('tableHeader');
+      const tableBody = document.getElementById('tableBody');
+      
+      tableHeader.innerHTML = '';
+      tableBody.innerHTML = '';
+      
+      tableHeader.innerHTML = `
+        <tr>
+          <th rowspan="2" class="location-header"><i class="fas fa-map-marker-alt"></i> LOKASI</th>
+          <th colspan="9" style="background: #0288d1;"><i class="fas fa-cloud"></i> CUACA</th>
+          <th rowspan="2" class="info-header"><i class="fas fa-thermometer-half"></i> SUHU<br>(°C)</th>
+          <th rowspan="2" class="info-header"><i class="fas fa-wind"></i> ANGIN<br>(km/jam)</th>
+          <th rowspan="2" class="info-header"><i class="fas fa-tint"></i> KELEMBABAN<br>(%)</th>
+        </tr>
+        <tr>
+          ${['07:00', '10:00', '13:00', '16:00', '19:00', '22:00', '01:00', '04:00', '07:00']
+            .map(time => `<th style="background: #0288d1; font-size: 16px;">${time}</th>`).join('')}
+        </tr>
+      `;
+      
+      currentForecastData.forEach((locationData, locIndex) => {
+        const row = document.createElement('tr');
+        
+        const processedForecasts = processWeatherData(locationData.apiData, model, locationData.location);
+        const stats = calculateStats(processedForecasts);
+        
+        locationData.forecasts = processedForecasts;
+        locationData.stats = stats;
+        
+        let rowHtml = `<td class="location-cell">${locationData.location.name}</td>`;
+        
+        if (processedForecasts) {
+          processedForecasts.forEach((fc, fcIndex) => {
+            if (fc.weatherDesc === "N/A" || fc.temperature === null) {
+              rowHtml += `<td class="weather-cell">-</td>`;
+            } else {
+              const iconUrl = weatherIcons[fc.weatherDesc] || weatherIcons["Berawan"];
+              rowHtml += `
+                <td class="weather-cell" data-loc="${locIndex}" data-time="${fcIndex}">
+                  <img src="${iconUrl}" alt="${fc.weatherDesc}" class="weather-icon" title="${fc.weatherDesc}">
+                </td>`;
+            }
+          });
+        } else {
+          rowHtml += `<td class="weather-cell" colspan="9">Data tidak tersedia</td>`;
+        }
+        
+        const windInfo = (stats.windMin !== null && stats.windMax !== null && stats.windDirFreq !== null) ? 
+          `${stats.windMin}-${stats.windMax}/${windDirectionAbbr[stats.windDirFreq] || 'Var'}` : '-';
+        
+        rowHtml += `
+          <td class="info-cell">
+            <span class="temp-range">
+              ${stats.tempMin !== null ? 
+                `<i class="fas fa-temperature-low"></i> <span class="temp-min editable" data-loc="${locIndex}" data-field="tempMin">${stats.tempMin}</span>-<span class="editable" data-loc="${locIndex}" data-field="tempMax">${stats.tempMax}</span>` : '-'}
+            </span>
+          </td>
+          <td class="info-cell">
+            <span class="wind-info">
+              <i class="fas fa-wind"></i>
+              <span class="editable" data-loc="${locIndex}" data-field="wind">${windInfo}</span>
+            </span>
+          </td>
+          <td class="info-cell">
+            <span class="humidity-range">
+              ${stats.humidityMin !== null ? 
+                `<i class="fas fa-tint"></i> <span class="editable" data-loc="${locIndex}" data-field="humidityMin">${stats.humidityMin}</span>-<span class="editable" data-loc="${locIndex}" data-field="humidityMax">${stats.humidityMax}</span>` : '-'}
+            </span>
+          </td>
+        `;
+        
+        row.innerHTML = rowHtml;
+        tableBody.appendChild(row);
+      });
+      
+      setupEditListeners();
+    }
+    
+    // ==================== CHART DISPLAY (ANTI-ERROR) ====================
+    function displayPrecipitationChart() {
+      const selectedKecamatanId = document.getElementById('kecamatanChartSelect').value;
+      const locationData = currentForecastData.find(d => d.location.id === selectedKecamatanId);
+      
+      const chartContainer = document.getElementById('precipitationChartContainer');
+      const modelNameEl = document.getElementById('chartModelName');
+
+      if (!locationData || !locationData.apiData || currentModel === 'bmkg') {
+        chartContainer.classList.remove('show');
+        return;
+      }
+      
+      const modelKey = modelApiKeyMap[currentModel];
+      const precipKey = (locationData.apiData.hourly[`precipitation_${modelKey}`]) ? `precipitation_${modelKey}` : 'precipitation';
+      
+      if (!locationData.apiData.hourly[precipKey]) {
+        chartContainer.classList.remove('show');
+        return;
+      }
+      
+      const labels = locationData.apiData.hourly.time.map(t => 
+        new Date(t).toLocaleString('id-ID', { 
+          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
+        })
+      );
+      const dataPoints = locationData.apiData.hourly[precipKey];
+      
+      const ctx = document.getElementById('precipitationChart').getContext('2d');
+      
+      if (currentChart) {
+        currentChart.destroy();
+      }
+      
+      currentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Curah Hujan (mm)',
+            data: dataPoints,
+            backgroundColor: 'rgba(66, 153, 225, 0.6)',
+            borderColor: 'rgba(66, 153, 225, 1)',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Curah Hujan (mm)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Waktu (3 Harian)'
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.dataset.label}: ${context.raw} mm`;
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      modelNameEl.textContent = modelSpecs[currentModel].title;
+      chartContainer.classList.add('show');
+    }
+    
+    function closeChart() {
+      document.getElementById('precipitationChartContainer').classList.remove('show');
+    }
+
+    // ==================== COMPARISON PANEL ====================
+    function toggleComparison() {
+      const panel = document.getElementById('comparisonPanel');
+      panel.classList.toggle('show');
+      if (panel.classList.contains('show')) {
+        updateComparison();
+      }
+    }
+    
+    async function updateComparison() {
+      const selectedKecId = document.getElementById('comparisonKecamatanSelect').value;
+      const selectedTime = document.getElementById('comparisonTimeSelect').value;
+      const checkedModels = Array.from(document.querySelectorAll('.model-selector input[type="checkbox"]:checked'))
+        .map(cb => cb.value);
+      
+      // Update checkbox styling
+      document.querySelectorAll('.model-checkbox').forEach(cb => {
+        const checkbox = cb.querySelector('input[type="checkbox"]');
+        if (checkbox.checked) {
+          cb.classList.add('checked');
+        } else {
+          cb.classList.remove('checked');
+        }
+      });
+      
+      if (checkedModels.length < 2) {
+        document.getElementById('comparisonAlert').classList.add('show');
+        document.getElementById('comparisonAlertText').textContent = 'Pilih minimal 2 model untuk melakukan perbandingan.';
+        document.querySelector('.comparison-table-wrapper').style.display = 'none';
+        document.getElementById('comparisonStats').style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('comparisonAlert').classList.remove('show');
+      document.querySelector('.comparison-table-wrapper').style.display = 'block';
+      document.getElementById('comparisonStats').style.display = 'grid';
+      
+      // Fetch data untuk model yang belum ada
+      for (const model of checkedModels) {
+        if (!allModelsData[model]) {
+          updateDebugInfo(`Mengambil data ${model.toUpperCase()}...`);
+          allModelsData[model] = {};
+          
+          for (const location of kecamatanList) {
+            const tempCurrentModel = currentModel;
+            currentModel = model;
+            const data = await fetchWeatherDataForLocation(location);
+            currentModel = tempCurrentModel;
+            
+            if (data) {
+              allModelsData[model][location.id] = {
+                location: location,
+                apiData: data,
+                forecasts: processWeatherData(data, model, location),
+                stats: null
+              };
+            }
+          }
+        }
+      }
+      
+      // Build comparison table
+      const tableHead = document.getElementById('comparisonTableHead');
+      const tableBody = document.getElementById('comparisonTableBody');
+      
+      tableHead.innerHTML = '';
+      tableBody.innerHTML = '';
+      
+      // Header
+      let headerHtml = '<tr><th>Waktu</th><th>Model</th><th>Cuaca</th><th>Suhu (°C)</th><th>Kelembaban (%)</th><th>Angin (km/h)</th><th>Curah Hujan (mm)</th></tr>';
+      tableHead.innerHTML = headerHtml;
+      
+      // Body
+      const times = selectedTime === 'all' ? [0,1,2,3,4,5,6,7,8] : [parseInt(selectedTime)];
+      const timeLabels = ['07:00 (H1)', '10:00 (H1)', '13:00 (H1)', '16:00 (H1)', '19:00 (H1)', '22:00 (H1)', '01:00 (H2)', '04:00 (H2)', '07:00 (H2)'];
+      
+      times.forEach(timeIdx => {
+        checkedModels.forEach((model, modelIdx) => {
+          const modelData = allModelsData[model];
+          if (!modelData || !modelData[selectedKecId]) return;
+          
+          const locData = modelData[selectedKecId];
+          if (!locData.forecasts || !locData.forecasts[timeIdx]) return;
+          
+          const fc = locData.forecasts[timeIdx];
+          const iconUrl = weatherIcons[fc.weatherDesc] || weatherIcons["Berawan"];
+          
+          const rowHtml = `
+            <tr>
+              ${modelIdx === 0 ? `<td class="time-cell" rowspan="${checkedModels.length}">${timeLabels[timeIdx]}</td>` : ''}
+              <td><strong>${modelSpecs[model] ? modelSpecs[model].title : model.toUpperCase()}</strong></td>
+              <td><img src="${iconUrl}" class="comparison-weather-icon" alt="${fc.weatherDesc}"><br>${fc.weatherDesc}</td>
+              <td>${fc.temperature !== null ? fc.temperature.toFixed(1) : 'N/A'}</td>
+              <td>${fc.humidity !== null ? fc.humidity : 'N/A'}</td>
+              <td>${fc.windSpeed !== null ? fc.windSpeed.toFixed(1) : 'N/A'} ${fc.windDirection || ''}</td>
+              <td>${fc.precipitation !== null ? fc.precipitation.toFixed(1) : 'N/A'}</td>
+            </tr>
+          `;
+          tableBody.innerHTML += rowHtml;
+        });
+      });
+      
+      // Stats
+      displayComparisonStats(checkedModels, selectedKecId, times);
+      updateDebugInfo('Panel perbandingan berhasil diperbarui');
+    }
+    
+    function displayComparisonStats(models, kecId, times) {
+      const statsContainer = document.getElementById('comparisonStats');
+      statsContainer.innerHTML = '';
+      
+      let allTemps = [], allHumidity = [], allPrecip = [], allWeather = [];
+      
+      times.forEach(timeIdx => {
+        models.forEach(model => {
+          const modelData = allModelsData[model];
+          if (!modelData || !modelData[kecId]) return;
+          
+          const locData = modelData[kecId];
+          if (!locData.forecasts || !locData.forecasts[timeIdx]) return;
+          
+          const fc = locData.forecasts[timeIdx];
+          if (fc.temperature !== null) allTemps.push(fc.temperature);
+          if (fc.humidity !== null) allHumidity.push(fc.humidity);
+          if (fc.precipitation !== null) allPrecip.push(fc.precipitation);
+          if (fc.weatherDesc && fc.weatherDesc !== 'N/A') allWeather.push(fc.weatherDesc);
+        });
+      });
+      
+      const avgTemp = allTemps.length > 0 ? (allTemps.reduce((a,b) => a+b, 0) / allTemps.length).toFixed(1) : 'N/A';
+      const avgHum = allHumidity.length > 0 ? Math.round(allHumidity.reduce((a,b) => a+b, 0) / allHumidity.length) : 'N/A';
+      const avgPrecip = allPrecip.length > 0 ? (allPrecip.reduce((a,b) => a+b, 0) / allPrecip.length).toFixed(1) : 'N/A';
+      
+      // Consensus weather
+      const weatherCounts = {};
+      allWeather.forEach(w => { weatherCounts[w] = (weatherCounts[w] || 0) + 1; });
+      const consensusWeather = Object.keys(weatherCounts).length > 0 
+        ? Object.keys(weatherCounts).reduce((a, b) => weatherCounts[a] > weatherCounts[b] ? a : b)
+        : 'N/A';
+      const consensusCount = weatherCounts[consensusWeather] || 0;
+      const consensusPercent = allWeather.length > 0 ? Math.round((consensusCount / allWeather.length) * 100) : 0;
+      
+      let consensusClass = 'consensus-low';
+      if (consensusPercent >= 70) consensusClass = 'consensus-high';
+      else if (consensusPercent >= 50) consensusClass = 'consensus-medium';
+      
+      // Deviation
+      const tempStdDev = allTemps.length > 1 ? Math.sqrt(allTemps.map(x => Math.pow(x - parseFloat(avgTemp), 2)).reduce((a,b) => a+b) / allTemps.length).toFixed(1) : 0;
+      const precipStdDev = allPrecip.length > 1 ? Math.sqrt(allPrecip.map(x => Math.pow(x - parseFloat(avgPrecip), 2)).reduce((a,b) => a+b) / allPrecip.length).toFixed(1) : 0;
+      
+      statsContainer.innerHTML = `
+        <div class="stat-card">
+          <h4><i class="fas fa-cloud"></i> Konsensus Cuaca</h4>
+          <div class="stat-value">${consensusWeather} <span class="consensus-indicator ${consensusClass}">${consensusPercent}%</span></div>
+        </div>
+        <div class="stat-card">
+          <h4><i class="fas fa-thermometer-half"></i> Rata² Suhu</h4>
+          <div class="stat-value">${avgTemp}°C <small style="color: #718096;">(±${tempStdDev}°C)</small></div>
+        </div>
+        <div class="stat-card">
+          <h4><i class="fas fa-tint"></i> Rata² Kelembaban</h4>
+          <div class="stat-value">${avgHum}%</div>
+        </div>
+        <div class="stat-card">
+          <h4><i class="fas fa-cloud-rain"></i> Rata² Curah Hujan</h4>
+          <div class="stat-value">${avgPrecip} mm <small style="color: #718096;">(±${precipStdDev} mm)</small></div>
+        </div>
+      `;
+      
+      // Show alert if high deviation
+      if (parseFloat(precipStdDev) > 5) {
+        document.getElementById('comparisonAlert').classList.add('show');
+        document.getElementById('comparisonAlertText').innerHTML = `
+          <strong>Perhatian:</strong> Terdapat perbedaan signifikan antar model dalam prediksi curah hujan (±${precipStdDev} mm). 
+          Disarankan untuk mempertimbangkan skenario terbaik dan terburuk dalam pengambilan keputusan.
+        `;
+      }
+    }
+
+    // ==================== EDIT MODE ====================
+    function setupEditListeners() {
+      document.querySelectorAll('.weather-cell[data-loc]').forEach(cell => {
+        cell.addEventListener('click', function() {
+          if (!editModeActive) return;
+          const locIndex = parseInt(this.dataset.loc);
+          const timeIndex = parseInt(this.dataset.time);
+          if (currentForecastData[locIndex] && currentForecastData[locIndex].forecasts) {
+            currentEditCell = { locIndex, timeIndex };
+            openWeatherSelector();
+          }
+        });
+      });
+      
+      document.querySelectorAll('.editable').forEach(span => {
+        span.addEventListener('click', function(e) {
+          if (!editModeActive) return;
+          e.stopPropagation();
+          this.contentEditable = true;
+          this.focus();
+        });
+        
+        span.addEventListener('blur', function() {
+          this.contentEditable = false;
+          const locIndex = parseInt(this.dataset.loc);
+          const field = this.dataset.field;
+          const value = this.textContent;
+          
+          if (currentForecastData[locIndex] && currentForecastData[locIndex].stats) {
+            const stats = currentForecastData[locIndex].stats;
+            if (field === 'wind') {
+              const parts = value.split('/');
+              if (parts.length === 2) {
+                const [range, dir] = parts;
+                const rangeParts = range.split('-');
+                stats.windMin = parseInt(rangeParts[0]) || 0;
+                stats.windMax = parseInt(rangeParts[1]) || stats.windMin;
+                stats.windDirFreq = Object.keys(windDirectionAbbr).find(key => windDirectionAbbr[key] === dir) || 'Var';
+              }
+            } else {
+              stats[field] = parseInt(value) || 0;
+            }
+          }
+        });
+        
+        span.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur();
+          }
+        });
+      });
+    }
+    
+    function openWeatherSelector() {
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('weatherSelector').classList.add('active');
+    }
+    
+    function closeWeatherSelector() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('weatherSelector').classList.remove('active');
+    }
+    
+    function selectWeather(weatherDesc, iconUrl) {
+      if (currentEditCell && editModeActive) {
+        const { locIndex, timeIndex } = currentEditCell;
+        
+        if (currentForecastData[locIndex] && currentForecastData[locIndex].forecasts) {
+          currentForecastData[locIndex].forecasts[timeIndex].weatherDesc = weatherDesc;
+          
+          const cell = document.querySelector(`td.weather-cell[data-loc="${locIndex}"][data-time="${timeIndex}"]`);
+          if (cell) {
+            cell.innerHTML = `<img src="${iconUrl}" alt="${weatherDesc}" class="weather-icon" title="${weatherDesc}">`;
+          }
+        }
+      }
+      closeWeatherSelector();
+      currentEditCell = null;
+    }
+
+    // ==================== EXPORT & DOWNLOAD ====================
+    function exportToCSV() {
+      if (currentForecastData.length === 0) {
+        showError('Tidak ada data untuk diekspor');
+        return;
+      }
+      
+      let csv = 'Kecamatan,Waktu,Cuaca,Suhu (°C),Kelembaban (%),Angin (km/h),Arah Angin,Curah Hujan (mm)\n';
+      
+      currentForecastData.forEach(locData => {
+        if (locData.forecasts) {
+          locData.forecasts.forEach((fc, idx) => {
+            const timeLabels = ['07:00', '10:00', '13:00', '16:00', '19:00', '22:00', '01:00', '04:00', '07:00'];
+            csv += `${locData.location.name},${timeLabels[idx]},${fc.weatherDesc},${fc.temperature || 'N/A'},${fc.humidity || 'N/A'},${fc.windSpeed || 'N/A'},${fc.windDirection || 'N/A'},${fc.precipitation || 'N/A'}\n`;
+          });
+        }
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `prakiraan_cuaca_${currentModel}_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      
+      showSuccess('Data berhasil diekspor ke CSV');
+    }
+    
+    function exportComparisonCSV() {
+      const checkedModels = Array.from(document.querySelectorAll('.model-selector input[type="checkbox"]:checked'))
+        .map(cb => cb.value);
+      const selectedKecId = document.getElementById('comparisonKecamatanSelect').value;
+      
+      if (checkedModels.length < 2) {
+        showError('Pilih minimal 2 model untuk ekspor');
+        return;
+      }
+      
+      let csv = 'Waktu,Model,Cuaca,Suhu (°C),Kelembaban (%),Angin (km/h),Arah Angin,Curah Hujan (mm)\n';
+      const timeLabels = ['07:00 (H1)', '10:00 (H1)', '13:00 (H1)', '16:00 (H1)', '19:00 (H1)', '22:00 (H1)', '01:00 (H2)', '04:00 (H2)', '07:00 (H2)'];
+      
+      for (let timeIdx = 0; timeIdx < 9; timeIdx++) {
+        checkedModels.forEach(model => {
+          const modelData = allModelsData[model];
+          if (!modelData || !modelData[selectedKecId]) return;
+          
+          const locData = modelData[selectedKecId];
+          if (!locData.forecasts || !locData.forecasts[timeIdx]) return;
+          
+          const fc = locData.forecasts[timeIdx];
+          csv += `${timeLabels[timeIdx]},${model},${fc.weatherDesc},${fc.temperature || 'N/A'},${fc.humidity || 'N/A'},${fc.windSpeed || 'N/A'},${fc.windDirection || 'N/A'},${fc.precipitation || 'N/A'}\n`;
+        });
+      }
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `perbandingan_model_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      
+      showSuccess('Perbandingan berhasil diekspor ke CSV');
+    }
+    
+    function screenshotComparison() {
+      const element = document.getElementById('comparisonPanel');
+      
+      html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `perbandingan_model_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showSuccess('Screenshot perbandingan berhasil didownload');
+      }).catch(error => {
+        console.error('Error screenshot:', error);
+        showError('Gagal membuat screenshot');
+      });
+    }
+    
+    function generateCover() {
+      const startDate = customStartDate || (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d;
+      })();
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 1);
+      
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      const startStr = startDate.toLocaleDateString('id-ID', options);
+      const endStr = endDate.toLocaleDateString('id-ID', options);
+      
+      document.getElementById('coverPeriod').innerHTML = `
+        Berlaku Mulai: ${startStr}<br>
+        pukul 07:00 WIB<br>
+        Hingga: ${endStr} pukul<br>
+        07:00 WIB
+      `;
+      
+      document.getElementById('weatherTemplate').classList.remove('active');
+      document.getElementById('coverTemplate').classList.add('active');
+      showSuccess('Cover berhasil di-generate');
+    }
+    
+    function downloadImage() {
+      let element;
+      let filename;
+      
+      if (document.getElementById('coverTemplate').classList.contains('active')) {
+        element = document.getElementById('coverTemplate');
+        filename = `cover_prakiraan_cuaca_${currentModel}_karimun_${new Date().toISOString().slice(0,10)}.png`;
+      } else {
+        element = document.getElementById('weatherTemplate');
+        filename = `prakiraan_cuaca_${currentModel}_karimun_${new Date().toISOString().slice(0,10)}.png`;
+      }
+      
+      updateDebugInfo('Sedang memproses gambar (skala 3x)...');
+      
+      html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+        width: 1080,
+        height: 1350,
+        windowWidth: 1080,
+        windowHeight: 1350
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+        showSuccess(`Gambar berhasil didownload: ${filename}`);
+        updateDebugInfo('Download selesai');
+      }).catch(error => {
+        console.error('Error downloading image:', error);
+        showError('Gagal mendownload gambar. Coba matikan AdBlock atau gunakan browser lain.');
+        updateDebugInfo('Error saat mendownload gambar');
+      });
+    }
+  </script>
+</body>
+</html>
