@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard Pasang-Surut Otomatis v7.5 (Final) • BMKG Karimun</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <style>
+    :root {
+      --pri: #1976d2; --pri-dark: #1565c0; --pri-light: #42a5f5;
+      --navy: #0d47a1; --navy-light: #1e88e5;
+      --bg1: #e8f4f8; --bg2: #cfe9f2; 
+      --success: #22c55e; --success-dark: #16a34a;
+      --error: #ef4444; --warning: #f59e0b;
+      --text-primary: #1e293b; --text-secondary: #64748b;
+      --glass: rgba(255,255,255,0.95); --glass-border: rgba(255,255,255,0.8);
+      --shadow-md: 0 5px 18px rgba(0,0,0,.12); --shadow-lg: 0 10px 30px rgba(0,0,0,.15);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+    body { min-height:100vh; padding:20px; background:var(--bg1); overflow-x:hidden; position:relative; }
+    body::before { content:""; position:fixed; inset:0; background-image:linear-gradient(135deg,rgba(232,244,248,.85)0%,rgba(207,233,242,.85)100%),url('https://i.postimg.cc/g25qWPWr/pelabuan-Karimun.jpg'); background-size:cover; background-position:center; background-attachment:fixed; z-index:-2; }
+    .container { max-width:1400px; margin:auto; }
+    header { display:flex; justify-content:space-between; align-items:center; background:var(--glass); backdrop-filter:blur(10px); padding:25px 35px; border-radius:20px; box-shadow:var(--shadow-md); margin-bottom:30px; border:1px solid var(--glass-border); }
+    header img { height:65px; }
+    h1 { font:800 32px 'Raleway',sans-serif; color:var(--navy); }
+    header p { color:var(--text-secondary); font-size:14px; }
+    .clock { display:flex; align-items:center; gap:10px; background:var(--bg1); padding:12px 24px; border-radius:50px; font-weight:500; color: var(--navy); }
+    .card { background:var(--glass); backdrop-filter:blur(10px); padding:35px; border-radius:20px; box-shadow:var(--shadow-md); margin-bottom:30px; border:1px solid var(--glass-border); }
+    .card h2, .card h3 { font:700 24px 'Raleway',sans-serif; color:var(--navy); margin-bottom:20px; display:flex; align-items:center; gap:12px; }
+    .controls { border:3px dashed var(--pri-light); border-radius:20px; padding:40px; text-align:center; background:linear-gradient(135deg,rgba(248,250,252,.8)0%,rgba(232,244,248,.8)100%); display:flex; flex-direction:column; align-items:center; gap:25px; }
+    .controls input[type=date] { padding:12px; border:2px solid var(--bg2); border-radius:10px; font-size:16px; background:#fff; cursor:pointer; }
+    .btn { border:none; border-radius:50px; padding:16px 40px; font:600 16px 'Inter',sans-serif; color:#fff; cursor:pointer; display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,var(--pri) 0%,var(--navy) 100%); transition:.3s; }
+    .btn:hover { transform:translateY(-2px); box-shadow:0 4px 15px rgba(25,118,210,.4); }
+    .btn-sec { background:linear-gradient(135deg,var(--success) 0%,var(--success-dark) 100%); }
+    .btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
+    .status { display:none; margin-top:25px; padding:16px 24px; border-radius:12px; font-weight:600; display:flex; align-items:center; gap:12px; animation:fadeIn .3s; }
+    .success { background:#d1fae5; color:#065f46; } .error { background:#fee2e2; color:#991b1b; } .warn { background:#fef3c7; color:#92400e; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:24px; }
+    .info-card { background:linear-gradient(135deg,rgba(248,250,252,.9)0%,rgba(241,245,249,.9)100%); border-radius:16px; padding:24px; text-align:center; }
+    .info-card h4 { font-size:14px; color:var(--text-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; }
+    .info-card p { font:700 24px 'Inter',sans-serif; color:var(--navy); }
+    .preview-wrap { display:none; flex-direction:column; gap:45px; }
+    .preview-card { background:var(--glass); backdrop-filter:blur(20px); padding:40px 20px; border-radius:24px; display:flex; flex-direction:column; align-items:center; }
+    .template-container { display:flex; justify-content:center; align-items:center; width:100%; min-width:1080px; }
+    .template { width:1080px; height:1350px; position:relative; overflow:hidden; background:#fff; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+    #chartCanvas { position:absolute; top:265px; left:55px; width:970px; height:580px; z-index:20; }
+    .graph-selector { display:flex; gap:15px; margin-bottom:30px; justify-content:center; }
+    .style-btn { padding:12px 28px; border:none; background:rgba(255,255,255,.9); border-radius:50px; cursor:pointer; font-weight:600; transition:.3s; color: var(--text-primary); }
+    .style-btn:hover { color:#fff; transform:translateY(-2px); background:var(--pri-light); }
+    .style-btn.active { background:linear-gradient(135deg,var(--pri) 0%,var(--navy) 100%); color:#fff; }
+    .btn-wrap { display:flex; gap:25px; justify-content:center; }
+    
+    .bottom-content-wrapper {
+        position: absolute;
+        bottom: 180px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 950px;
+        display: flex;
+        gap: 20px;
+        align-items: stretch;
+        justify-content: center;
+        z-index: 30;
+    }
+    .styled-box {
+        flex: 1;
+        background: linear-gradient(145deg, #f0f8ff, #d8e6f1);
+        border-radius: 15px;
+        border-top: 5px solid transparent;
+        box-shadow: 5px 5px 10px #c5d4e0, -5px -5px 10px #ffffff;
+        padding: 20px 22px;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        opacity: 0.95; 
+        display: flex;
+        flex-direction: column;
+    }
+    .sun-box { border-color: var(--warning); }
+    .tide-box { border-color: var(--navy); }
+    .fish-box { border-color: var(--success); }
+
+    .box-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #d1e0ec;
+        font: 700 16px 'Raleway', sans-serif;
+        color: var(--navy);
+    }
+    .box-header i { font-size: 18px; }
+    
+    .tide-list { display:flex; gap:10px; justify-content:space-between; }
+    .tide-column { display:flex; flex-direction:column; gap:6px; width:48%; font-size: 14px; }
+    .tide-row { display:flex; align-items:center; gap:8px; }
+    .tide-row span:nth-child(2) { font-weight: 600; }
+    .tide-row span:nth-child(3) { font-weight: 700; color: var(--navy); }
+    .arrow-up { color:var(--success); } .arrow-down { color:var(--error); }
+    .fish-row { display:flex; align-items:center; gap:10px; margin: 5px 0; }
+    .fish-icons { font-size: 16px; letter-spacing: 1px; min-width: 60px; }
+    .fish-text { font-size: 14px; font-weight: 500; }
+    .simple-fish { display: inline-block; width: 16px; height: 9px; background: currentColor; border-radius: 50% 0 50% 0; position: relative; margin: 0 1px; }
+    .simple-fish::after { content: ''; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; border-width: 3.5px 0 3.5px 4.5px; border-color: transparent transparent transparent currentColor; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div style="display:flex;align-items:center;gap:20px">
+      <img src="https://i.postimg.cc/3wXX5yrx/logo-bmkg-1.png" alt="BMKG"/>
+      <div>
+        <h1>Dashboard Pasang-Surut Otomatis</h1>
+        <p>Stasiun Meteorologi Raja Haji Abdullah – Tj. Balai Karimun</p>
+      </div>
+    </div>
+    <div class="clock"><i class="fas fa-clock"></i><span id="clock"></span></div>
+  </header>
+  <section class="card">
+    <h2><i class="fas fa-database"></i> Ambil Data Prakiraan BMKG</h2>
+    <div class="controls">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center">
+        <label>Tanggal Mulai: <input type="date" id="startDate"/></label>
+        <label>Tanggal Akhir: <input type="date" id="endDate"/></label>
+      </div>
+      <button id="fetchBtn" class="btn"><i class="fas fa-sync-alt"></i> Tampilkan Data</button>
+    </div>
+    <div id="status" class="status"></div>
+  </section>
+  <section id="infoSec" class="card" style="display:none">
+    <h2><i class="fas fa-chart-bar"></i> Ringkasan Data</h2>
+    <div id="infoGrid" class="info-grid"></div>
+  </section>
+  <section id="previewWrap" class="preview-wrap"></section>
+  <section id="dlSec" class="card" style="display:none"></section>
+</div>
+
+<script>
+/*********************************************************************
+ * Dashboard Pasang-Surut Otomatis v7.5 – Tj. Balai Karimun
+ * FINAL VERSION
+ * ©2025 BMKG Karimun
+ *********************************************************************/
+const LOCATION_ID = '3000000023';
+const PROXIES = [ 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url=', 'https://cors.eu.org/' ];
+const COVER_SRC = 'https://raw.githubusercontent.com/sawal1512/svg-assets/main/CoverTides.svg';
+const CHART_SRC = 'https://raw.githubusercontent.com/sawal1512/svg-assets/main/FixTemplateGrafikPasut.svg';
+let data = [], tides = [], currentStyle = 'gradient';
+let userStartDate, userEndDate;
+let sunriseTime, sunsetTime; 
+
+const $ = q => document.querySelector(q), $$ = q => document.querySelectorAll(q);
+const fmtDate = d => d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+const fmtShort = d => d.toLocaleDateString('id-ID', { day:'2-digit', month:'short' });
+const fmtTime = d => d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' });
+function clock() { $('#clock').textContent = new Date().toLocaleString('id-ID', { weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Jakarta'}) + ' WIB'; }
+setInterval(clock, 1000); clock();
+function status(cls, msg) { const el = $('#status'); el.className = 'status ' + cls; el.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`; el.style.display = 'flex'; }
+async function fetchWithFallback(url) {
+    let lastError = null;
+    for (const proxy of PROXIES) {
+        try {
+            const response = await fetch(proxy + encodeURIComponent(url));
+            if (!response.ok) { throw new Error(`Proxy gagal dengan status: ${response.status}`); }
+            return await response.json();
+        } catch (error) { console.warn(`Gagal menggunakan proxy: ${proxy}`, error); lastError = error; }
+    }
+    throw lastError || new Error("Semua proxy gagal dihubungi.");
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date(); const future = new Date(); future.setDate(today.getDate() + 2);
+  $('#startDate').valueAsDate = today; $('#endDate').valueAsDate = future;
+  $('#fetchBtn').onclick = fetchData;
+});
+async function fetchData() {
+  const btn = $('#fetchBtn'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mencari koneksi...';
+  status('warn', 'Memanggil Data Dari https://maritim.bmkg.go.id/cuaca/pasut...');
+  ['infoSec', 'previewWrap', 'dlSec'].forEach(id => $(`#${id}`).style.display = 'none');
+  userStartDate = new Date($('#startDate').value); userEndDate = new Date($('#endDate').value); userStartDate.setHours(0,0,0,0);
+  if (isNaN(userStartDate) || isNaN(userEndDate) || userStartDate > userEndDate) {
+    status('error', 'Rentang tanggal tidak valid.'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Tampilkan Data'; return;
+  }
+  const apiStartDate = new Date(userStartDate); apiStartDate.setDate(apiStartDate.getDate() - 1);
+  const ss = apiDate(apiStartDate), ee = apiDate(userEndDate);
+  const rawHourlyURL = `https://maritim.bmkg.go.id/pasut/data/WIB/${LOCATION_ID}/${ss}/${ee}`;
+  const rawHltideURL = `https://maritim.bmkg.go.id/pasut/hltide/LAT/WIB/${LOCATION_ID}/${ss}/${ee}`;
+  try {
+    const [hData, hlData] = await Promise.all([ fetchWithFallback(rawHourlyURL), fetchWithFallback(rawHltideURL) ]);
+    if (!Array.isArray(hData) || !hData.length) throw new Error('Data per jam kosong.');
+    processData(hData, hlData);
+    status('success', `Data berhasil diproses dengan datum LAT! Ditemukan ${data.length} titik data.`);
+    renderAll();
+  } catch (err) {
+    status('error', 'Gagal mengambil data: ' + err.message + '. Semua koneksi proxy gagal, silakan coba lagi nanti.');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Tampilkan Data';
+  }
+}
+function apiDate(d) { return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`; }
+function processData(hourly, hl) {
+  const endDateLimit = new Date(userEndDate); endDateLimit.setDate(endDateLimit.getDate() + 1); endDateLimit.setHours(0, 0, 0, 0);
+  let allData = hourly.map(o => ({ waktu: new Date(o.t), ketinggian: parseFloat(o.lt) })).filter(o => !isNaN(o.ketinggian) && o.waktu);
+  let hts = [], lts = [];
+  if (hl && Array.isArray(hl.high_tides)) {
+    hts = hl.high_tides.map(o => ({ waktu: new Date(o.time), ketinggian: parseFloat(o.value), jenis: 'Pasang' }));
+    lts = hl.low_tides.map(o => ({ waktu: new Date(o.time), ketinggian: parseFloat(o.value), jenis: 'Surut' }));
+  }
+  let allTides = [...hts, ...lts].sort((a, b) => a.waktu - b.waktu);
+  data = allData.filter(d => d.waktu >= userStartDate && d.waktu < endDateLimit);
+  tides = allTides.filter(t => t.waktu >= userStartDate && t.waktu < endDateLimit);
+}
+function renderAll() {
+  if (!data.length) { status('error', 'Tidak ada data pada rentang tanggal yang dipilih.'); return; }
+  summary(); buildPreview(); buildDownload();
+  ['infoSec', 'previewWrap', 'dlSec'].forEach(id => $(`#${id}`).style.display = 'block');
+  setTimeout(draw, 100);
+}
+function summary() {
+  if (!tides.length) return;
+  const pasangTertinggi = Math.max(...tides.map(t => t.ketinggian)); const surutTerendah = Math.min(...tides.map(t => t.ketinggian));
+  $('#infoGrid').innerHTML = `
+    <div class="info-card"><h4>📅 Periode Data</h4><p>${fmtDate(userStartDate)} – ${fmtDate(userEndDate)}</p></div>
+    <div class="info-card"><h4>📊 Total Titik Data</h4><p>${data.length}</p></div>
+    <div class="info-card"><h4>📈 Pasang Tertinggi</h4><p>${pasangTertinggi.toFixed(2)} m</p></div>
+    <div class="info-card"><h4>📉 Surut Terendah</h4><p>${surutTerendah.toFixed(2)} m</p></div>`;
+}
+function buildPreview() {
+  const html = `
+    <div class="preview-card"><h3><i class="fas fa-image"></i> Preview Cover</h3><div class="template-container"><div id="coverBox" class="template"></div></div></div>
+    <div class="preview-card"><h3><i class="fas fa-chart-line"></i> Preview Grafik</h3><div class="graph-selector">
+      <button class="style-btn active" data-style="gradient">Gradient</button><button class="style-btn" data-style="3d">3D</button><button class="style-btn" data-style="wave">Wave</button><button class="style-btn" data-style="neon">Neon</button>
+    </div><div class="template-container"><div id="chartBox" class="template"></div></div></div>`;
+  $('#previewWrap').innerHTML = html;
+  // --- MODIFIKASI DIMULAI DI SINI ---
+  $('#coverBox').innerHTML = `<img src="${COVER_SRC}" crossorigin="anonymous" style="width:100%;height:100%"><div style="position:absolute;top:650px;left:540px;transform:translateX(-50%);width:85%;text-align:center;font:700 32px Raleway;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.5); line-height:1.5;">Berlaku : ${fmtDate(userStartDate)}<br>Hingga : ${fmtDate(userEndDate)}</div>`;
+  // --- MODIFIKASI SELESAI DI SINI ---
+  $$('.style-btn').forEach(btn => btn.onclick = e => {
+    $$('.style-btn').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); currentStyle = e.target.dataset.style; draw();
+  });
+  const today = new Date(); const latitude = 1.07; const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  const P = Math.asin(0.39795 * Math.cos(0.98563 * (dayOfYear - 173) * Math.PI / 180));
+  const sunriseHour = 6 + (Math.sin(P) * 0.2); const sunsetHour = 18 + (Math.sin(P) * 0.2);
+  sunriseTime = `${String(Math.floor(sunriseHour)).padStart(2,'0')}:${String(Math.round((sunriseHour % 1) * 60)).padStart(2,'0')}`;
+  sunsetTime = `${String(Math.floor(sunsetHour)).padStart(2,'0')}:${String(Math.round((sunsetHour % 1) * 60)).padStart(2,'0')}`;
+  $('#chartBox').innerHTML = `<img src="${CHART_SRC}" crossorigin="anonymous" style="width:100%;height:100%"><div style="position:absolute;top:220px;left:45px;width:990px;height:700px;border-radius:26px;border:8px solid #fff;background:rgba(255,255,255,0.95);z-index:10"></div><canvas id="chartCanvas"></canvas><div class="bottom-content-wrapper" id="bottom-content"></div>`;
+  buildBottomContent(sunriseTime, sunsetTime);
+}
+function buildBottomContent(sunriseTime, sunsetTime) {
+  const tideListHTML = makeTideHTML(tides);
+  $('#bottom-content').innerHTML = `
+    <div class="styled-box sun-box">
+        <div class="box-header"><i class="fas fa-sun"></i> Info Matahari</div>
+        <div style="font-size:14px;line-height:1.8; text-align:center; margin-top: auto; margin-bottom: auto;">
+            <span>Terbit: <b>${sunriseTime} WIB</b></span><br>
+            <span>Terbenam: <b>${sunsetTime} WIB</b></span>
+        </div>
+    </div>
+    <div class="styled-box tide-box">
+        <div class="box-header"><i class="fas fa-water"></i> Waktu Pasang Surut</div>
+        <div class="tide-list">${tideListHTML}</div>
+    </div>
+    <div class="styled-box fish-box">
+        <div class="box-header"><i class="fas fa-fish"></i> Aktivitas Ikan</div>
+        <div class="fish-row"><span class="fish-icons" style="color:#10b981"><span class="simple-fish"></span><span class="simple-fish"></span><span class="simple-fish"></span></span><span class="fish-text">Sangat Baik (Pasang Maks.)</span></div>
+        <div class="fish-row"><span class="fish-icons" style="color:#3b82f6"><span class="simple-fish"></span><span class="simple-fish"></span></span><span class="fish-text">Baik (Pasang Biasa)</span></div>
+        <div class="fish-row"><span class="fish-icons" style="color:#6b7280"><span class="simple-fish"></span></span><span class="fish-text">Kurang (Semua Surut)</span></div>
+    </div>`;
+}
+function makeTideHTML(arr) {
+  const mid = Math.ceil(arr.length / 2);
+  const makeList = items => items.map(t => `<div class="tide-row"><span class="${t.jenis==='Pasang'?'arrow-up':'arrow-down'}">${t.jenis==='Pasang'?'↑':'↓'}</span><span>${fmtTime(t.waktu)}</span><span>${t.ketinggian.toFixed(2)}m</span></div>`).join('');
+  return `<div class="tide-column">${makeList(arr.slice(0,mid))}</div><div class="tide-column">${makeList(arr.slice(mid))}</div>`;
+}
+function buildDownload() {
+  $('#dlSec').innerHTML = `<h2><i class="fas fa-download"></i> Unduh PNG</h2><div class="btn-wrap"><button id="dlCover" class="btn"><i class="fas fa-file-image"></i> Unduh Cover</button><button id="dlChart" class="btn btn-sec"><i class="fas fa-chart-line"></i> Unduh Grafik</button></div>`;
+  $('#dlCover').onclick = () => savePNG('#coverBox', 'Cover_Pasut_Karimun');
+  $('#dlChart').onclick = () => savePNG('#chartBox', 'Grafik_Pasut_Karimun');
+}
+function savePNG(sel, fn) {
+  status('warn', `Membuat gambar ${fn}...`);
+  html2canvas($(sel), { useCORS:true, scale: 2, backgroundColor:null, logging: false }).then(cv => {
+    const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `${fn}_${apiDate(userStartDate)}.png`; a.click();
+    status('success', 'Gambar berhasil diunduh!');
+  }).catch(err => status('error', `Gagal membuat gambar: ${err.message}`));
+}
+function findClosestIndex(targetTime, dataArray) {
+    let closestIndex = -1, minDiff = Infinity;
+    dataArray.forEach((d, index) => {
+        const diff = Math.abs(d.waktu.getTime() - targetTime.getTime());
+        if (diff < minDiff) { minDiff = diff; closestIndex = index; }
+    });
+    return closestIndex;
+}
+function draw() {
+  const c = $('#chartCanvas'); if (!c || !data.length) return;
+  c.width = 970; c.height = 580; const ctx = c.getContext('2d');
+  const margin = { top: 40, right: 40, bottom: 70, left: 80 };
+  const W = c.width - margin.left - margin.right; const H = c.height - margin.top - margin.bottom;
+  const allValues = [...data.map(d => d.ketinggian), ...tides.map(t => t.ketinggian)];
+  const yMin = Math.min(...allValues); const yMax = Math.max(...allValues);
+  const yRange = yMax - yMin; const yPadding = yRange * 0.2;
+  const yDomainMin = Math.max(0, Math.floor((yMin - yPadding) * 10) / 10);
+  const yDomainMax = Math.ceil((yMax + yPadding) * 10) / 10;
+  const xScale = W / (data.length - 1); const yScale = H / (yDomainMax - yDomainMin);
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.fillStyle = '#000'; ctx.font = 'bold 26px Raleway'; ctx.textAlign = 'center';
+  ctx.fillText('Grafik Pasang Surut Air Laut', c.width/2, 30);
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath();
+  ctx.moveTo(margin.left, margin.top); ctx.lineTo(margin.left, margin.top + H); ctx.lineTo(margin.left + W, margin.top + H); ctx.stroke();
+  const yTicks = 7; ctx.font = '16px Inter'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for(let i = 0; i <= yTicks; i++) {
+    const val = yDomainMin + (yDomainMax - yDomainMin) * i / yTicks;
+    const y = margin.top + H - (val - yDomainMin) * yScale;
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1; ctx.setLineDash([5, 5]); ctx.beginPath();
+    ctx.moveTo(margin.left, y); ctx.lineTo(margin.left + W, y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#000'; ctx.fillText(val.toFixed(1), margin.left - 15, y);
+  }
+  ctx.save(); ctx.translate(25, c.height/2); ctx.rotate(-Math.PI/2); ctx.font = 'bold 18px Inter'; ctx.textAlign = 'center';
+  ctx.fillText('Ketinggian (m) Datum LAT', 0, 0); ctx.restore();
+  ctx.font = '14px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const dateLabels = {};
+  data.forEach((d, i) => { const date = fmtShort(d.waktu); if(!dateLabels[date]) dateLabels[date] = []; dateLabels[date].push(i); });
+  Object.entries(dateLabels).forEach(([date, indices]) => {
+    const midIndex = indices[Math.floor(indices.length/2)];
+    const x = margin.left + midIndex * xScale;
+    ctx.fillStyle = '#000'; ctx.font = '16px Inter'; ctx.fillText(date, x, margin.top + H + 5);
+  });
+  ctx.font = '12px Inter'; ctx.fillStyle = '#666';
+  const timeInterval = Math.max(1, Math.floor(data.length / 16));
+  for (let i = 0; i < data.length; i += timeInterval) {
+    const d = data[i]; const x = margin.left + i * xScale; ctx.textAlign = 'center'; ctx.fillText(fmtTime(d.waktu), x, margin.top + H + 30);
+  }
+  ctx.font = 'bold 18px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#000';
+  ctx.fillText('Tanggal', c.width/2, c.height - 15);
+  if(currentStyle === 'gradient') drawGradientStyle(ctx, margin, W, H, xScale, yScale, yDomainMin);
+  else if(currentStyle === '3d') draw3DStyle(ctx, margin, W, H, xScale, yScale, yDomainMin);
+  else if(currentStyle === 'wave') drawWaveStyle(ctx, margin, W, H, xScale, yScale, yDomainMin);
+  else if(currentStyle === 'neon') drawNeonStyle(ctx, margin, W, H, xScale, yScale, yDomainMin);
+  drawMarkersFixed(ctx, margin, W, H, xScale, yScale, yDomainMin);
+  drawSunInfo(ctx, margin, W);
+}
+function drawSunInfo(ctx, margin, W) {
+  const sunriseX = margin.left + W * 0.15;
+  const sunsetX = margin.left + W * 0.85;
+  const sunY = margin.top + 25;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.fillRect(sunriseX - 40, sunY - 15, 80, 45);
+  ctx.fillRect(sunsetX - 40, sunY - 15, 80, 45);
+  ctx.font = '18px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('☀️', sunriseX, sunY);
+  ctx.font = 'bold 14px sans-serif'; ctx.fillStyle = '#f59e0b';
+  ctx.fillText('↑', sunriseX + 15, sunY);
+  ctx.font = '12px Inter'; ctx.fillStyle = '#333';
+  ctx.fillText(sunriseTime, sunriseX, sunY + 20);
+  ctx.font = '18px sans-serif';
+  ctx.fillText('☀️', sunsetX, sunY);
+  ctx.font = 'bold 14px sans-serif'; ctx.fillStyle = '#ef4444';
+  ctx.fillText('↓', sunsetX + 15, sunY);
+  ctx.font = '12px Inter'; ctx.fillStyle = '#333';
+  ctx.fillText(sunsetTime, sunsetX, sunY + 20);
+}
+function drawGradientStyle(ctx, margin, W, H, xScale, yScale, yDomainMin) {
+  ctx.fillStyle = 'rgba(59,130,246,0.3)'; ctx.beginPath(); ctx.moveTo(margin.left, margin.top + H);
+  data.forEach((d, i) => { const x = margin.left + i * xScale; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale; ctx.lineTo(x, y); });
+  ctx.lineTo(margin.left + (data.length - 1) * xScale, margin.top + H); ctx.closePath(); ctx.fill();
+  const lineGrad = ctx.createLinearGradient(0, margin.top, 0, margin.top + H);
+  lineGrad.addColorStop(0, '#2563eb'); lineGrad.addColorStop(0.5, '#1d4ed8'); lineGrad.addColorStop(1, '#1e3a8a');
+  ctx.strokeStyle = lineGrad; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = margin.left + i * xScale; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+function draw3DStyle(ctx, margin, W, H, xScale, yScale, yDomainMin) {
+  for(let depth = 8; depth >= 0; depth--) {
+    const alpha = 0.02 + depth * 0.02; const offset = (8 - depth) * 2;
+    ctx.strokeStyle = `rgba(0,0,50,${alpha})`; ctx.lineWidth = 8 - depth; ctx.beginPath();
+    data.forEach((d, i) => {
+      const x = margin.left + i * xScale + offset; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale + offset;
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+  const grad = ctx.createLinearGradient(0, margin.top, 0, margin.top + H);
+  grad.addColorStop(0, '#60a5fa'); grad.addColorStop(0.5, '#3b82f6'); grad.addColorStop(1, '#1d4ed8');
+  ctx.strokeStyle = grad; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = margin.left + i * xScale; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+function drawWaveStyle(ctx, margin, W, H, xScale, yScale, yDomainMin) {
+  for(let wave = 0; wave < 4; wave++) {
+    const waveOffset = wave * 8; const waveAlpha = 0.25 - wave * 0.05;
+    ctx.fillStyle = `rgba(34,211,238,${waveAlpha})`; ctx.beginPath(); ctx.moveTo(margin.left, margin.top + H);
+    data.forEach((d, i) => {
+      const x = margin.left + i * xScale; const baseY = margin.top + H - (d.ketinggian - yDomainMin) * yScale;
+      const waveY = baseY + Math.sin(i * 0.3 + wave * 0.5) * (5 + wave) + waveOffset;
+      ctx.lineTo(x, waveY);
+    });
+    ctx.lineTo(margin.left + W, margin.top + H); ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = '#0891b2'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = margin.left + i * xScale; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+function drawNeonStyle(ctx, margin, W, H, xScale, yScale, yDomainMin) {
+  ctx.fillStyle = 'rgba(0,0,30,0.15)'; ctx.fillRect(margin.left, margin.top, W, H);
+  const neonColors = ['rgba(0,255,255,0.2)', 'rgba(0,200,255,0.4)', 'rgba(0,150,255,0.6)', 'rgba(0,100,255,0.8)'];
+  const glowWidths = [25, 15, 8, 4];
+  neonColors.forEach((color, idx) => {
+    ctx.strokeStyle = color; ctx.lineWidth = glowWidths[idx]; ctx.shadowColor = color; ctx.shadowBlur = 25; ctx.lineCap = 'round'; ctx.beginPath();
+    data.forEach((d, i) => {
+      const x = margin.left + i * xScale; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale;
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+  ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2; ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 35; ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = margin.left + i * xScale; const y = margin.top + H - (d.ketinggian - yDomainMin) * yScale;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+}
+function drawMarkersFixed(ctx, margin, W, H, xScale, yScale, yDomainMin) {
+  const drawnLabels = [];
+  const minLabelDistance = 120;
+  const pasangValues = tides.filter(td => td.jenis === 'Pasang').map(td => td.ketinggian);
+  const maxPasang = pasangValues.length ? Math.max(...pasangValues) : -Infinity;
+  tides.forEach(tidePoint => {
+    const closestIndex = findClosestIndex(tidePoint.waktu, data);
+    if (closestIndex < 0) return;
+    const x = margin.left + closestIndex * xScale;
+    const y = margin.top + H - (tidePoint.ketinggian - yDomainMin) * yScale;
+    if (x < margin.left || x > margin.left + W || y < margin.top || y > margin.top + H) return;
+    const isMax = tidePoint.jenis === 'Pasang' && tidePoint.ketinggian === maxPasang;
+    let pointColor, fishCount, fishColor;
+    if (isMax) { pointColor = '#dc2626'; fishCount = 3; fishColor = '#10b981'; } 
+    else if (tidePoint.jenis === 'Pasang') { pointColor = '#f59e0b'; fishCount = 2; fishColor = '#3b82f6'; } 
+    else { pointColor = '#42a5f5'; fishCount = 1; fishColor = '#6b7280'; }
+    ctx.fillStyle = pointColor; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath();
+    ctx.arc(x, y, isMax ? 9 : 7, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    const wouldOverlap = drawnLabels.some(label => Math.abs(label.x - x) < minLabelDistance && Math.abs(label.y - y) < 80);
+    if (!wouldOverlap) {
+        const labelText = tidePoint.ketinggian.toFixed(2) + 'm';
+        let labelY = y - 25;
+        if (labelY < margin.top + 20) labelY = y + 25;
+        ctx.font = 'bold 14px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.strokeText(labelText, x, labelY);
+        ctx.fillStyle = pointColor; ctx.fillText(labelText, x, labelY);
+        drawnLabels.push({ x, y: labelY });
+    }
+    const fishSpacing = 20; const fishY = y;
+    const onRightHalf = x > (margin.left + W / 2);
+    let startX;
+    if (onRightHalf) { startX = x - 25 - (fishCount - 1) * fishSpacing; } 
+    else { startX = x + 25; }
+    ctx.save();
+    for(let f = 0; f < fishCount; f++) {
+        const fishX = startX + f * fishSpacing;
+        ctx.fillStyle = fishColor; ctx.beginPath(); ctx.ellipse(fishX, fishY, 8, 5, 0, 0, 2 * Math.PI); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(fishX + 7, fishY); ctx.lineTo(fishX + 12, fishY - 3); ctx.lineTo(fishX + 12, fishY + 3); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  });
+}
+</script>
+</body>
+</html>

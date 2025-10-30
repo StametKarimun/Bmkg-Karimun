@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Dashboard Cuaca Maritim Perairan Karimun - BMKG Karimun</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style>
+:root {
+  --w: 1080px; --h: 1350px;
+  --primary: #0066cc; --secondary: #00a2ff; --accent: #00d4ff;
+  --text-dark: #1a2332; --text-light: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.98);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
+  --wave-calm: #00a2ff; --wave-low: #22c55e; --wave-medium: #f59e0b;
+  --wave-high: #ef4444; --wave-very-high: #dc2626; --wave-extreme: #991b1b;
+  --temp-color: #ef4444; --rh-color: #3b82f6;
+  --wind-color: #10b981; --gust-color: #f59e0b; --wave-color: #6366f1;
+  --current-color: #06b6d4; --sea-temp-color: #ec4899;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif; 
+  color: var(--text-dark);
+  background: url("https://i.postimg.cc/T3Y7ZSwH/karimun-2345447485.jpg") center/cover fixed no-repeat;
+  min-height: 100vh; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  padding: 20px;
+}
+
+.control-panel { 
+  max-width: 1200px; 
+  width: 100%; 
+  margin-bottom: 30px; 
+}
+
+.header {
+  background: var(--card-bg); 
+  border-radius: 24px; 
+  padding: 30px 40px;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  gap: 20px;
+  backdrop-filter: blur(20px); 
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.header-left { 
+  display: flex; 
+  align-items: center; 
+  gap: 25px; 
+}
+
+.header-left img { 
+  width: 80px; 
+  height: 80px; 
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); 
+}
+
+.header-info h1 { 
+  font-family: 'Raleway', sans-serif; 
+  font-size: 32px; 
+  font-weight: 800; 
+  color: var(--primary); 
+  margin-bottom: 4px; 
+}
+
+.header-info p { 
+  font-size: 15px; 
+  font-weight: 500; 
+  color: #64748b; 
+}
+
+.clock-pill {
+  background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+  color: white;
+  border-radius: 50px; 
+  padding: 14px 28px; 
+  font-size: 15px; 
+  font-weight: 600; 
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
+/* Edit Mode Toggle */
+.edit-mode-section {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 60px;
+  height: 32px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-switch.active {
+  background: #22c55e;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 28px;
+  height: 28px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(28px);
+}
+
+.toggle-label {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 16px;
+}
+
+.toggle-description {
+  font-size: 14px;
+  color: #64748b;
+  margin-left: 75px;
+}
+
+.form-container {
+  margin-top: 30px; 
+  background: var(--card-bg); 
+  border-radius: 24px; 
+  padding: 35px 40px;
+  backdrop-filter: blur(20px); 
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  text-align: center; 
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.form-container h2 { 
+  font: 700 24px 'Raleway'; 
+  color: var(--primary); 
+  margin-bottom: 25px; 
+}
+
+#status-notification { 
+  display: none; 
+  padding: 14px 24px; 
+  border-radius: 12px; 
+  margin-top: 20px; 
+  font-weight: 600; 
+  animation: slideIn 0.5s ease-out; 
+}
+
+#status-notification.loading { 
+  background-color: #e0f2fe; 
+  color: #0369a1; 
+  border: 1px solid #7dd3fc; 
+}
+
+#status-notification.error { 
+  background-color: #fee2e2; 
+  color: #991b1b; 
+  border: 1px solid #fca5a5; 
+}
+
+@keyframes slideIn { 
+  from { opacity: 0; transform: translateY(-20px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+.btn {
+  background: linear-gradient(135deg, var(--secondary), var(--primary)); 
+  color: white;
+  padding: 18px 50px; 
+  border: none; 
+  border-radius: 50px; 
+  font-size: 18px; 
+  font-weight: 700;
+  cursor: pointer; 
+  box-shadow: 0 6px 20px rgba(0, 102, 204, 0.3); 
+  transition: all 0.3s ease;
+}
+
+.btn:hover:not(:disabled) { 
+  transform: translateY(-3px); 
+  box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4); 
+}
+
+.btn:disabled { 
+  background: #94a3b8; 
+  cursor: not-allowed; 
+  box-shadow: none; 
+}
+
+#output { 
+  display: none; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 40px; 
+}
+
+.template-container { 
+  width: var(--w); 
+  height: var(--h); 
+  position: relative; 
+  overflow: hidden; 
+  border-radius: 20px; 
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); 
+}
+
+#cover-container { 
+  background: url("https://raw.githubusercontent.com/sawal1512/svg-assets/main/CoverMarineForecast.svg") center/cover no-repeat; 
+}
+
+#periode { 
+  position: absolute; 
+  top: 650px; 
+  left: 540px; 
+  transform: translateX(-50%); 
+  width: 85%; 
+  text-align: center; 
+  color: white; 
+  font: 700 32px 'Raleway', sans-serif; 
+  text-shadow: 0 3px 10px rgba(0,0,0,0.5); 
+  line-height: 1.5; 
+}
+
+#board-container { 
+  background: url("https://raw.githubusercontent.com/sawal1512/svg-assets/main/templateMarineForecast.svg") center/cover no-repeat; 
+}
+
+#board-title { 
+  position: absolute; 
+  top: 180px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  text-align: center; 
+  z-index: 10; 
+}
+
+#board-title h3 { 
+  font: 800 28px 'Raleway'; 
+  color: white; 
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 10px rgba(0,0,0,0.8); 
+  letter-spacing: 1px; 
+  margin-bottom: 5px; 
+}
+
+#board-title p { 
+  font: 700 22px 'Raleway'; 
+  color: white; 
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 10px rgba(0,0,0,0.8); 
+}
+
+#forecast-grid {
+  position: absolute;
+  top: 280px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1050px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.forecast-row {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  width: 100%;
+}
+
+.forecast-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255,255,255,0.9);
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.forecast-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  border-color: var(--primary);
+}
+
+.forecast-card.edit-mode {
+  border-color: #22c55e;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2);
+}
+
+.forecast-card.edit-mode::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  border-radius: 20px;
+  z-index: -1;
+}
+
+.edit-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  transition: all 0.2s ease;
+}
+
+.edit-mode-active .edit-button {
+  display: flex;
+}
+
+.edit-button:hover {
+  background: #16a34a;
+  transform: scale(1.1);
+}
+
+.date-time-header {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  padding: 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.weather-section {
+  padding: 10px;
+  text-align: center;
+  background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+}
+
+.temp-rh-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.temp-badge, .rh-badge {
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.temp-badge {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--temp-color);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.rh-badge {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--rh-color);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.weather-icon-wrapper {
+  width: 83px;
+  height: 83px;
+  margin: 8px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.weather-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.weather-name-badge {
+  background: #2563eb;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-block;
+  margin-top: 5px;
+}
+
+.data-section {
+  padding: 10px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.data-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.data-label i {
+  font-size: 14px;
+}
+
+.icon-wind { color: var(--wind-color); }
+.icon-gust { color: var(--gust-color); }
+.icon-wave { color: var(--wave-color); }
+.icon-current { color: var(--current-color); }
+.icon-sea-temp { color: var(--sea-temp-color); }
+
+.data-value {
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wind-arrow, .current-arrow {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.current-dir {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.gust-value {
+  color: #ef4444;
+}
+
+.wave-badge {
+  padding: 3px 12px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  white-space: nowrap;
+}
+
+.wave-tenang { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+.wave-rendah { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.wave-sedang { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1f2937 !important; }
+.wave-tinggi { background: linear-gradient(135deg, #fb923c, #f97316); }
+.wave-sangat-tinggi { background: linear-gradient(135deg, #f87171, #ef4444); }
+.wave-ekstrem { background: linear-gradient(135deg, #dc2626, #991b1b); }
+
+.downloads {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dl-btn {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  border: 0;
+  border-radius: 50px;
+  padding: 14px 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+  transition: all 0.3s ease;
+}
+
+.dl-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Edit Modal Styles */
+.edit-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.edit-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.modal-title {
+  font: 700 24px 'Raleway';
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.modal-subtitle {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.weather-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.weather-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+}
+
+.weather-option:hover {
+  border-color: var(--primary);
+  background: #e0f2fe;
+}
+
+.weather-option.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.weather-option img {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+}
+
+.weather-option span {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.modal-btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.modal-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.modal-btn.primary:hover {
+  background: #0052a3;
+  transform: translateY(-2px);
+}
+
+.modal-btn.secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.modal-btn.secondary:hover {
+  background: #d1d5db;
+}
+
+/* Editable input styles */
+.editable-input {
+  background: transparent;
+  border: 1px dashed #22c55e;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: inherit;
+  font-size: inherit;
+  color: inherit;
+  width: auto;
+  min-width: 30px;
+}
+
+.editable-input:focus {
+  outline: none;
+  background: rgba(34, 197, 94, 0.1);
+  border-style: solid;
+}
+</style>
+</head>
+<body>
+
+<div class="control-panel">
+  <header class="header">
+    <div class="header-left">
+      <img src="https://i.postimg.cc/3wXX5yrx/logo-bmkg_(1).png" alt="BMKG">
+      <div class="header-info">
+        <h1>Dashboard Cuaca Maritim Perairan Karimun</h1>
+        <p>Stasiun Meteorologi Raja Haji Abdullah Tj. Balai Karimun</p>
+      </div>
+    </div>
+    <div class="clock-pill" id="clock">Memuat waktu...</div>
+  </header>
+  
+  <div class="edit-mode-section">
+    <div class="toggle-container">
+      <div class="toggle-switch" id="editModeToggle">
+        <div class="toggle-slider"></div>
+      </div>
+      <div class="toggle-label">Mode Edit</div>
+    </div>
+    <div class="toggle-description">Aktifkan untuk mengubah prakiraan cuaca</div>
+  </div>
+  
+  <div class="form-container">
+    <h2><i class="fas fa-ship"></i> Prakiraan Cuaca Maritim BMKG</h2>
+    
+    <button class="btn" id="fetch-btn">
+      <i class="fas fa-sync-alt"></i> Tampilkan Prakiraan Cuaca Perairan
+    </button>
+    
+    <div id="status-notification"></div>
+  </div>
+</div>
+
+<div id="output">
+  <div id="cover-container" class="template-container">
+    <div id="periode"></div>
+  </div>
+  
+  <div id="board-container" class="template-container">
+    <div id="board-title">
+      <h3>PRAKIRAAN CUACA MARITIM</h3>
+      <p>Perairan Kep. Karimun</p>
+    </div>
+    <div id="forecast-grid"></div>
+  </div>
+  
+  <div class="downloads">
+    <button class="dl-btn" id="dl-cover">
+      <i class="fas fa-file-image"></i> Unduh Cover
+    </button>
+    <button class="dl-btn" id="dl-board">
+      <i class="fas fa-chart-line"></i> Unduh Prakiraan
+    </button>
+  </div>
+</div>
+
+<div class="edit-modal" id="editModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Edit Prakiraan Cuaca</div>
+      <div class="modal-subtitle">Pilih kondisi cuaca dan ubah parameter maritim</div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Pilih Kondisi Cuaca</label>
+      <div class="weather-selector" id="weatherSelector">
+        </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Suhu (°C)</label>
+        <input type="number" class="form-input" id="editTemp" min="20" max="40">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kelembaban (%)</label>
+        <input type="number" class="form-input" id="editRh" min="0" max="100">
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Kecepatan Angin (kt)</label>
+        <input type="number" class="form-input" id="editWind" min="0" max="50">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Arah Angin</label>
+        <select class="form-select" id="editWindDir">
+          <option value="Utara">Utara</option>
+          <option value="Timur Laut">Timur Laut</option>
+          <option value="Timur">Timur</option>
+          <option value="Tenggara">Tenggara</option>
+          <option value="Selatan">Selatan</option>
+          <option value="Barat Daya">Barat Daya</option>
+          <option value="Barat">Barat</option>
+          <option value="Barat Laut">Barat Laut</option>
+          <option value="Variable">Variable</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Gust (kt)</label>
+        <input type="number" class="form-input" id="editGust" min="0" max="60">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tinggi Gelombang (m)</label>
+        <input type="number" class="form-input" id="editWave" min="0" max="10" step="0.1">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Kecepatan Arus (cm/s)</label>
+        <input type="number" class="form-input" id="editCurrent" min="0" max="200">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Arah Arus</label>
+        <select class="form-select" id="editCurrentDir">
+          <option value="Utara">Utara</option>
+          <option value="Timur Laut">Timur Laut</option>
+          <option value="Timur">Timur</option>
+          <option value="Tenggara">Tenggara</option>
+          <option value="Selatan">Selatan</option>
+          <option value="Barat Daya">Barat Daya</option>
+          <option value="Barat">Barat</option>
+          <option value="Barat Laut">Barat Laut</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Suhu Laut (°C)</label>
+      <input type="number" class="form-input" id="editSeaTemp" min="20" max="35">
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeEditModal()">Batal</button>
+      <button class="modal-btn primary" onclick="saveCardEdit()">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- KONFIGURASI & VARIABEL GLOBAL ---
+const API_URL = "https://maritim.bmkg.go.id/marine-data/perairan/P.R.01.json";
+const $ = q => document.querySelector(q);
+
+const weatherIcons = {
+    'Berawan': 'https://i.postimg.cc/fbJ2ySm7/Berawan.png',
+    'Berawan Tebal': 'https://i.postimg.cc/vTd30PjX/Berawan-Tebal.png',
+    'Cerah': 'https://i.postimg.cc/NF7bS6vt/Cerah.png',
+    'Cerah Berawan': 'https://i.postimg.cc/XNw2rbGP/Cerah-Berawan.png',
+    'Hujan Lebat': 'https://i.postimg.cc/CLScDQbx/Hujan-Lebat.png',
+    'Hujan Petir': 'https://i.postimg.cc/HkL3v8ZG/Hujan-Petir.png',
+    'Hujan Ringan': 'https://i.postimg.cc/KvfJ5D5r/Hujan-Ringan.png',
+    'Hujan Sedang': 'https://i.postimg.cc/mrzjBfW8/Hujan-Sedang.png',
+    'Hujan Lokal': 'https://i.postimg.cc/KvfJ5D5r/Hujan-Ringan.png',
+    'Petir': 'https://i.postimg.cc/13YBkR28/Petir.png',
+    'Udara Kabur': 'https://i.postimg.cc/6Qk0Qj9w/Udara-Kabur.png',
+    'Kabut': 'https://i.postimg.cc/6Qk0Qj9w/Udara-Kabur.png'
+};
+
+// Direction abbreviations
+const dirAbbrev = {
+    'Utara': 'U',
+    'Timur Laut': 'TL',
+    'Timur': 'T',
+    'Tenggara': 'TG',
+    'Selatan': 'S',
+    'Barat Daya': 'BD',
+    'Barat': 'B',
+    'Barat Laut': 'BL',
+    'Variable': 'V'
+};
+
+// Global variables for edit mode
+let isEditMode = false;
+let currentEditingCard = null;
+let forecastData = [];
+
+// --- FUNGSI BANTU (HELPERS) ---
+const toWIB = (dateInput) => {
+    if (dateInput instanceof Date) return dateInput;
+    if (typeof dateInput === 'string') return new Date(dateInput.replace(' UTC', 'Z'));
+    return new Date(); 
+};
+
+const formatDate = (date, options) => {
+    try {
+        return toWIB(date).toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', ...options });
+    } catch (e) {
+        return "Invalid Date";
+    }
+};
+
+const formatTime = (date) => {
+    try {
+        return toWIB(date).toLocaleTimeString('id-ID', { 
+            timeZone: 'Asia/Jakarta', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    } catch (e) {
+        return "00:00";
+    }
+};
+
+const dirToDeg = { 
+    'Utara': 0, 'Timur Laut': 45, 'Timur': 90, 'Tenggara': 135, 
+    'Selatan': 180, 'Barat Daya': 225, 'Barat': 270, 'Barat Laut': 315, 
+    'Variable': 0 
+};
+
+const getArrow = dir => {
+    if (!dir) return '';
+    return `<i class="fas fa-arrow-down" style="transform: rotate(${dirToDeg[dir] || 0}deg);"></i>`;
+};
+
+const getWaveClass = cat => `wave-${(cat || 'tenang').toLowerCase().replace(/\s+/g, '-')}`;
+
+const getWaveCategory = (height) => {
+    const h = parseFloat(height) || 0;
+    if (h <= 0.5) return 'Tenang';
+    if (h <= 1.0) return 'Rendah';
+    if (h <= 2.0) return 'Sedang';
+    if (h <= 3.0) return 'Tinggi';
+    if (h <= 4.0) return 'Sangat Tinggi';
+    return 'Ekstrem';
+};
+
+const createIconElement = weather => {
+    const iconUrl = weatherIcons[weather] || weatherIcons['Berawan'];
+    return `<img class="weather-icon" src="${iconUrl}" alt="${weather||'Cuaca'}" onerror="this.src='${weatherIcons['Berawan']}'">`;
+};
+
+// --- EDIT MODE FUNCTIONS ---
+function toggleEditMode() {
+    isEditMode = !isEditMode;
+    const toggle = $('#editModeToggle');
+    const forecastGrid = $('#forecast-grid');
+    
+    toggle.classList.toggle('active', isEditMode);
+    
+    if (isEditMode) {
+        forecastGrid.classList.add('edit-mode-active');
+    } else {
+        forecastGrid.classList.remove('edit-mode-active');
+        closeEditModal();
+    }
+}
+
+function openEditModal(cardIndex) {
+    if (!isEditMode) return;
+    
+    currentEditingCard = cardIndex;
+    const forecast = forecastData[cardIndex];
+    if (!forecast) return;
+    
+    // Populate form with current values
+    $('#editTemp').value = forecast.temp_avg || 27;
+    $('#editRh').value = forecast.rh_avg || 80;
+    $('#editWind').value = forecast.wind_speed || 5;
+    $('#editWindDir').value = forecast.wind_from || 'Utara';
+    $('#editGust').value = forecast.wind_gust || 10;
+    $('#editWave').value = forecast.wave_height || 0.5;
+    $('#editCurrent').value = forecast.current_speed || 50;
+    $('#editCurrentDir').value = forecast.current_to || 'Utara';
+    $('#editSeaTemp').value = forecast.temp_avg || 27;
+    
+    // Populate weather selector
+    populateWeatherSelector(forecast.weather || 'Berawan');
+    
+    // Show modal
+    $('#editModal').classList.add('show');
+}
+
+function closeEditModal() {
+    $('#editModal').classList.remove('show');
+    currentEditingCard = null;
+}
+
+function populateWeatherSelector(currentWeather) {
+    const selector = $('#weatherSelector');
+    const weatherOptions = [
+        'Cerah', 'Cerah Berawan', 'Berawan', 'Berawan Tebal',
+        'Hujan Ringan', 'Hujan Sedang', 'Hujan Lebat', 'Hujan Petir',
+        'Petir', 'Udara Kabur'
+    ];
+    
+    selector.innerHTML = weatherOptions.map(weather => `
+        <div class="weather-option ${weather === currentWeather ? 'selected' : ''}" 
+             onclick="selectWeather('${weather}')">
+            <img src="${weatherIcons[weather]}" alt="${weather}">
+            <span>${weather}</span>
+        </div>
+    `).join('');
+}
+
+function selectWeather(weather) {
+    const options = document.querySelectorAll('.weather-option');
+    options.forEach(opt => opt.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+}
+
+function saveCardEdit() {
+    if (currentEditingCard === null) return;
+    
+    const selectedWeather = document.querySelector('.weather-option.selected span').textContent;
+    
+    // Update forecast data
+    const forecast = forecastData[currentEditingCard];
+    forecast.weather = selectedWeather;
+    forecast.temp_avg = parseInt($('#editTemp').value);
+    forecast.rh_avg = parseInt($('#editRh').value);
+    forecast.wind_speed = parseInt($('#editWind').value);
+    forecast.wind_from = $('#editWindDir').value;
+    forecast.wind_gust = parseInt($('#editGust').value);
+    forecast.wave_height = parseFloat($('#editWave').value);
+    forecast.current_speed = parseInt($('#editCurrent').value);
+    forecast.current_to = $('#editCurrentDir').value;
+    forecast.wave_cat = getWaveCategory(forecast.wave_height);
+    
+    // Rebuild the board with updated data
+    buildBoard(forecastData);
+    
+    // Close modal
+    closeEditModal();
+}
+
+// --- FUNGSI INTI ---
+function getTargetForecasts(apiData) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Target times for tomorrow (H+1) and day after (H+2)
+    const targetTimes = [
+        // H+1: 07:00, 10:00, 13:00, 16:00, 19:00, 22:00
+        ...Array.from({length: 6}, (_, i) => {
+            const d = new Date(today);
+            d.setDate(today.getDate() + 1);
+            d.setHours([7, 10, 13, 16, 19, 22][i], 0, 0, 0);
+            return d;
+        }),
+        // H+2: 01:00, 04:00, 07:00
+        ...Array.from({length: 3}, (_, i) => {
+            const d = new Date(today);
+            d.setDate(today.getDate() + 2);
+            d.setHours([1, 4, 7][i], 0, 0, 0);
+            return d;
+        })
+    ];
+    
+    // Combine all forecasts
+    const allForecasts = [...(apiData.forecast_day1 || []), ...(apiData['forecast_day2-4'] || [])];
+    
+    // Find matching forecasts for each target time
+    const results = targetTimes.map(targetTime => {
+        const targetHour = targetTime.getHours();
+        const targetDateStr = targetTime.toDateString();
+        
+        const match = allForecasts.find(f => {
+            if (!f || !f.time) return false;
+            const forecastDate = toWIB(f.time);
+            return forecastDate.toDateString() === targetDateStr && 
+                   forecastDate.getHours() === targetHour;
+        });
+        
+        return match || null;
+    });
+    
+    return results;
+}
+
+function buildCover(forecasts) {
+    const validForecasts = forecasts.filter(f => f !== null);
+    if (validForecasts.length === 0) {
+        $('#periode').innerHTML = `Data prakiraan tidak tersedia`;
+        return;
+    }
+    
+    const startDate = validForecasts[0].time;
+    const endDate = validForecasts[validForecasts.length - 1].time;
+    
+    const fmt = { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
+    $('#periode').innerHTML = `Berlaku : ${formatDate(startDate, fmt)}<br>Hingga : ${formatDate(endDate, fmt)}`;
+}
+
+function buildBoard(forecasts) {
+    const forecastGrid = $('#forecast-grid');
+    
+    // Create HTML for each forecast card
+    const createCard = (forecast, index) => {
+        if (!forecast) {
+            return `<div class="forecast-card" style="opacity: 0.5;">
+                <div class="date-time-header">Data tidak tersedia</div>
+                <div class="weather-section">
+                    <div class="weather-icon-wrapper">
+                        <i class="fas fa-question-circle" style="font-size: 40px; color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>`;
+        }
+        
+        const date = toWIB(forecast.time);
+        const dateStr = formatDate(date, { day: 'numeric', month: 'short' });
+        const timeStr = formatTime(date);
+        const waveClass = getWaveClass(forecast.wave_cat);
+        
+        return `
+            <div class="forecast-card ${isEditMode ? 'edit-mode' : ''}" onclick="${isEditMode ? `openEditModal(${index})` : ''}">
+                <button class="edit-button" onclick="event.stopPropagation(); openEditModal(${index})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <div class="date-time-header">${dateStr} • ${timeStr} WIB</div>
+                <div class="weather-section">
+                    <div class="temp-rh-row">
+                        <div class="temp-badge">${forecast.temp_avg || '-'}°C</div>
+                        <div class="rh-badge">${forecast.rh_avg || '-'}%</div>
+                    </div>
+                    <div class="weather-icon-wrapper">
+                        ${createIconElement(forecast.weather)}
+                    </div>
+                    <div class="weather-name-badge">${forecast.weather || 'Berawan'}</div>
+                </div>
+                <div class="data-section">
+                    <div class="data-row">
+                        <div class="data-label">
+                            <i class="fas fa-wind icon-wind"></i> Angin
+                        </div>
+                        <div class="data-value">
+                            <span class="wind-arrow">${getArrow(forecast.wind_from)}</span>
+                            ${forecast.wind_speed || 0} kt
+                        </div>
+                    </div>
+                    <div class="data-row">
+                        <div class="data-label">
+                            <i class="fas fa-wind icon-gust"></i> Gust
+                        </div>
+                        <div class="data-value gust-value">
+                            ${forecast.wind_gust || 0} kt
+                        </div>
+                    </div>
+                    <div class="data-row">
+                        <div class="data-label">
+                            <i class="fas fa-water icon-wave"></i> Gelombang
+                        </div>
+                        <div class="data-value">
+                            <span class="wave-badge ${waveClass}">${forecast.wave_height || 0} m</span>
+                        </div>
+                    </div>
+                    <div class="data-row">
+                        <div class="data-label">
+                            <i class="fas fa-arrows-alt icon-current"></i> Arus
+                        </div>
+                        <div class="data-value">
+                            <span class="current-dir">${dirAbbrev[forecast.current_to] || ''}</span>
+                            <span class="current-arrow">${getArrow(forecast.current_to)}</span>
+                            ${forecast.current_speed || 0} cm/s
+                        </div>
+                    </div>
+                    <div class="data-row">
+                        <div class="data-label">
+                            <i class="fas fa-thermometer-half icon-sea-temp"></i> Suhu Laut
+                        </div>
+                        <div class="data-value">
+                            ${forecast.temp_avg || '-'}°C
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+    
+    // Build rows (5 cards on top, 4 cards on bottom)
+    const topRow = forecasts.slice(0, 5).map((forecast, index) => createCard(forecast, index)).join('');
+    const bottomRow = forecasts.slice(5, 9).map((forecast, index) => createCard(forecast, index + 5)).join('');
+    
+    forecastGrid.innerHTML = `
+        <div class="forecast-row">${topRow}</div>
+        <div class="forecast-row">${bottomRow}</div>
+    `;
+}
+
+async function generateDashboard() {
+    const btn = $('#fetch-btn');
+    const statusEl = $('#status-notification');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
+    statusEl.className = 'loading';
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = `Mengambil data prakiraan...`;
+    
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error(`Gagal terhubung (${response.status})`);
+        const apiData = await response.json();
+        
+        // Get 9 specific forecasts
+        const targetForecasts = getTargetForecasts(apiData);
+        
+        // Store forecast data for editing
+        forecastData = targetForecasts.map(f => f || {
+            time: new Date(),
+            weather: 'Berawan',
+            temp_avg: 27,
+            rh_avg: 80,
+            wind_speed: 5,
+            wind_from: 'Utara',
+            wind_gust: 10,
+            wave_height: 0.5,
+            wave_cat: 'Tenang',
+            current_speed: 50,
+            current_to: 'Utara'
+        });
+        
+        // Build dashboard
+        buildCover(forecastData);
+        buildBoard(forecastData);
+        
+        $('#output').style.display = 'flex';
+        statusEl.style.display = 'none';
+    } catch (error) {
+        console.error("Dashboard Generation Error:", error);
+        statusEl.className = 'error';
+        statusEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> Error: ${error.message}`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Tampilkan Prakiraan Cuaca Perairan';
+    }
+}
+
+async function downloadImage(elementId, filename, buttonId) {
+    const el = $(`#${elementId}`);
+    const btn = $(`#${buttonId}`);
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Mengunduh...';
+    
+    try {
+        await new Promise(r => setTimeout(r, 500));
+        const canvas = await html2canvas(el, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null,
+            logging: false
+        });
+        
+        canvas.toBlob((blob) => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }, 'image/png');
+    } catch (err) {
+        alert(`Gagal mengunduh gambar. Silakan coba lagi.`);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = buttonId === 'dl-cover' 
+            ? '<i class="fas fa-file-image"></i> Unduh Cover' 
+            : '<i class="fas fa-chart-line"></i> Unduh Prakiraan';
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Clock update
+    const clockEl = $('#clock');
+    const updateClock = () => {
+        clockEl.textContent = new Date().toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Jakarta'
+        }) + ' WIB';
+    };
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // Event listeners
+    $('#fetch-btn').addEventListener('click', generateDashboard);
+    $('#dl-cover').addEventListener('click', () => downloadImage('cover-container', 'Cover_CuacaMaritim.png', 'dl-cover'));
+    $('#dl-board').addEventListener('click', () => downloadImage('board-container', 'Prakiraan_CuacaMaritim.png', 'dl-board'));
+    
+    // Edit mode toggle
+    $('#editModeToggle').addEventListener('click', toggleEditMode);
+    
+    // Close modal when clicking outside
+    $('#editModal').addEventListener('click', (e) => {
+        if (e.target === $('#editModal')) {
+            closeEditModal();
+        }
+    });
+});
+</script>
+</body>
+</html>
