@@ -853,16 +853,6 @@
             font-weight: 600;
             color: var(--primary-dark);
         }
-
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
     </style>
 </head>
 <body>
@@ -983,4 +973,913 @@
                 <div class="list-section">
                     <div class="list-header">
                         <span><i class="fas fa-list"></i> PRAKIRAAN PELABUHAN</span>
-                        <span id="update-time">--:
+                        <span id="update-time">--:--</span>
+                        <div class="list-controls">
+                            <button class="list-btn" onclick="scrollPortList(-1)"><i class="fas fa-chevron-up"></i></button>
+                            <button class="list-btn" onclick="scrollPortList(1)"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                    <div class="list-scroll"><div class="list-track" id="port-list"></div></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: Waters -->
+            <div class="slide slide-two-col" id="slide-4">
+                <div class="panel">
+                    <div class="panel-head"><h3><i class="fas fa-water"></i> Peta Perairan</h3><span id="water-count">19 Perairan</span></div>
+                    <div class="panel-body">
+                        <div class="map-wrap" id="map-sea"></div>
+                        <div class="legend">
+                            <div class="legend-title">Tinggi Gelombang:</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#2196F3"></div>Tenang (0-0.5m)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#4CAF50"></div>Rendah (0.5-1.25m)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#FF9800"></div>Sedang (1.25-2.5m)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#f44336"></div>Tinggi (&gt;2.5m)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <div class="list-header" style="background: linear-gradient(90deg, #01579b, #0277bd);">
+                        <span><i class="fas fa-chart-area"></i> PRAKIRAAN PERAIRAN</span>
+                        <div class="list-controls">
+                            <button class="list-btn" onclick="scrollWaterList(-1)"><i class="fas fa-chevron-up"></i></button>
+                            <button class="list-btn" onclick="scrollWaterList(1)"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                    <div class="list-scroll"><div class="list-track" id="water-list"></div></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: RADAR -->
+            <div class="slide slide-full" id="slide-5">
+                <div class="img-panel-full">
+                    <div class="panel-head"><h3><i class="fas fa-broadcast-tower"></i> Citra Radar Cuaca CMAX + Angin - Batam</h3></div>
+                    <div class="img-content" id="radar-content"></div>
+                    <div class="img-footer"><span>Reflektivitas radar + arah angin permukaan</span><span>BMKG Radar Batam</span></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: MODEL -->
+            <div class="slide slide-full" id="slide-6">
+                <div class="img-panel-full">
+                    <div class="panel-head"><h3><i class="fas fa-map"></i> Peta Model Cuaca Maritim</h3><span id="model-label">Tinggi Gelombang</span></div>
+                    <div class="img-content" id="model-content"></div>
+                    <div class="img-footer"><span id="model-info"><i class="fas fa-info-circle"></i> Tinggi Gelombang</span><span id="model-time"><i class="fas fa-clock"></i> Run: --</span></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: SATELIT -->
+            <div class="slide slide-full" id="slide-7">
+                <div class="img-panel-full">
+                    <div class="panel-head"><h3><i class="fas fa-satellite"></i> Citra Satelit Himawari</h3></div>
+                    <div class="img-content"><img id="sat-img" src="https://inderaja.bmkg.go.id/IMAGE/HIMA/H08_EH_Kepri.png" alt="Satelit"></div>
+                    <div class="img-footer"><span>Warna terang = awan tinggi / konvektif</span><span>Himawari-8 JMA</span></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: NOWCAST -->
+            <div class="slide slide-full" id="slide-8">
+                <div class="nowcast-panel" id="nowcast-panel"></div>
+            </div>
+
+            <div class="dots">
+                <div class="dot active" onclick="goSlide(1)"></div>
+                <div class="dot" onclick="goSlide(2)"></div>
+                <div class="dot" onclick="goSlide(3)"></div>
+                <div class="dot" onclick="goSlide(4)"></div>
+                <div class="dot" onclick="goSlide(5)"></div>
+                <div class="dot" onclick="goSlide(6)"></div>
+                <div class="dot" onclick="goSlide(7)"></div>
+                <div class="dot" onclick="goSlide(8)"></div>
+                <span class="dot-label" id="dot-label">1/8 AWS Realtime</span>
+            </div>
+        </main>
+
+        <footer>
+            <div class="ticker-label"><i class="fas fa-info-circle"></i> INFO</div>
+            <div class="ticker-wrap"><span class="ticker-text" id="ticker">Memuat informasi...</span></div>
+        </footer>
+    </div>
+</div>
+
+<div class="alarm-overlay" id="alarm-overlay"></div>
+<div class="alarm-banner" id="alarm-banner">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span id="alarm-text">PERINGATAN!</span>
+    <button class="mute-btn" onclick="muteAlarm()"><i class="fas fa-volume-mute"></i> MATIKAN</button>
+</div>
+
+<div class="pause-indicator" id="pause-indicator"><i class="fas fa-pause"></i> JEDA</div>
+
+<div class="control-panel">
+    <button class="ctrl-btn" id="btn-pause" onclick="togglePause()" title="Pause"><i class="fas fa-pause"></i></button>
+    <button class="ctrl-btn" onclick="zoomContent(1.1)" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+    <button class="ctrl-btn" onclick="zoomContent(0.9)" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+    <button class="ctrl-btn" onclick="manualRefresh()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+    <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute"><i class="fas fa-volume-up"></i></button>
+    <button class="ctrl-btn" onclick="openModal()" title="Settings"><i class="fas fa-cog"></i></button>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-cog"></i> Pengaturan Display</h3>
+        <div class="section-title">Tampilan</div>
+        <div class="form-group">
+            <label>Kecepatan Slide (detik):</label>
+            <input type="range" id="inp-speed" min="5" max="60" value="15" oninput="document.getElementById('speed-val').textContent = this.value + 's'">
+            <div class="val-display" id="speed-val">15s</div>
+        </div>
+        <div class="form-group">
+            <label>Auto Refresh Data (menit):</label>
+            <input type="range" id="inp-refresh" min="1" max="30" value="5" oninput="document.getElementById('refresh-val').textContent = this.value + ' menit'">
+            <div class="val-display" id="refresh-val">5 menit</div>
+        </div>
+        <div class="section-title">Alarm Angin</div>
+        <div class="form-group">
+            <label>Threshold Angin (knot):</label>
+            <input type="range" id="inp-wind-threshold" min="10" max="40" value="15" oninput="document.getElementById('wind-val').textContent = this.value + ' kt'">
+            <div class="val-display" id="wind-val">15 kt</div>
+        </div>
+        <button class="btn-save" onclick="saveSettings()">Simpan Pengaturan</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ============================================
+// CONFIG
+// ============================================
+let current = 1, total = 8, slideSpeed = 15000, isPaused = false, timer;
+let fcIdx = 0, portIdx = 0, waterIdx = 0, currentModel = 'swh', modelIdx = 0, contentZoom = 1;
+const LABELS = ['AWS Realtime', 'Prakiraan 3 Jam', 'Pelabuhan', 'Perairan', 'Radar', 'Model', 'Satelit', 'Peringatan'];
+
+let AUTO_REFRESH_INTERVAL = 5 * 60 * 1000;
+let refreshCountdown = 300;
+let refreshTimer = null;
+
+let awsData = null;
+let awsOnline = false;
+
+let WIND_THRESHOLD = 15;
+let isMuted = false;
+let alarmTimeout = null;
+let lastWindAlarmTriggered = false;
+let lastRainAlarmAt = 0;
+let firstRainDetected = false;
+
+let audioCtx = null;
+let sirenOscillator = null;
+let sirenGain = null;
+let sirenInterval = null;
+
+// ============================================
+// CORS PROXIES - Multiple fallbacks
+// ============================================
+const CORS_PROXIES = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
+
+async function fetchWithProxy(url, timeout = 12000) {
+    // Try each proxy
+    for(let i = 0; i < CORS_PROXIES.length; i++) {
+        try {
+            const proxyUrl = CORS_PROXIES[i](url);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(proxyUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if(response.ok) {
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch(e) {
+                    return text;
+                }
+            }
+        } catch(e) {
+            console.log(`Proxy ${i+1} failed for ${url.substring(0,50)}...`);
+        }
+    }
+    return null;
+}
+
+// ============================================
+// PORTS
+// ============================================
+const PORTS = [
+    { code: 'XR023', name: 'Pel. Internasional Tanjung Balai Karimun', lat: 0.988535874, lon: 103.436420048, main: true },
+    { code: 'XR001', name: 'Pelabuhan Nongsapura', lat: 1.187951645, lon: 104.094681413 },
+    { code: 'XR002', name: 'Pelabuhan Batam Center', lat: 1.16491934200007, lon: 104.062610709 },
+    { code: 'XR003', name: 'Pelabuhan Harbour Bay', lat: 1.153287202, lon: 103.996803136 },
+    { code: 'XR004', name: 'Pelabuhan Telaga Punggur', lat: 1.03508302000005, lon: 104.132875093 },
+    { code: 'XR005', name: 'Pelabuhan Sekupang', lat: 1.124855, lon: 103.926713 },
+    { code: 'XR006', name: 'Pelabuhan Sekupang 2', lat: 1.12723011100007, lon: 103.9236681 },
+    { code: 'XR007', name: 'Pelabuhan Batu Ampar', lat: 1.16477794500002, lon: 104.002159585 },
+    { code: 'XR008', name: 'Pelabuhan Dermaga Roro Asdp Punggur', lat: 1.033865381, lon: 104.131419737 },
+    { code: 'XR009', name: 'Pelabuhan Tambelan', lat: 0.975353887, lon: 107.548145151 },
+    { code: 'XR010', name: 'Pelabuhan Jagoh', lat: -0.33392538499993, lon: 104.490347597 },
+    { code: 'XR011', name: 'Pelabuhan Sei Daik', lat: -0.216809998, lon: 104.623909165 },
+    { code: 'XR012', name: 'Pelabuhan Tanjung Buton', lat: -0.252826201, lon: 104.595039722 },
+    { code: 'XR013', name: 'Pelabuhan Sei Tenam', lat: -0.00654851599995, lon: 104.507024272 },
+    { code: 'XR014', name: 'Pelabuhan Dabo', lat: -0.500747924999928, lon: 104.565474926 },
+    { code: 'XR015', name: 'Pelabuhan Sri Bintan Pura', lat: 0.930765889, lon: 104.439959094 },
+    { code: 'XR016', name: 'Pelabuhan Sri Payung', lat: 0.932107854000037, lon: 104.461126151 },
+    { code: 'XR017', name: 'Pelabuhan Roro Dompak', lat: 0.86718997, lon: 104.483180238 },
+    { code: 'XR018', name: 'Pelabuhan Sri Bayintan (Kijang)', lat: 0.808723376000046, lon: 104.615095499 },
+    { code: 'XR019', name: 'Pelabuhan Bandar Bentan Telani (Lagoi)', lat: 1.160454622, lon: 104.320303792 },
+    { code: 'XR020', name: 'Pelabuhan Bandar Seri Udana (Lobam)', lat: 1.0021248, lon: 104.2555929 },
+    { code: 'XR021', name: 'Pelabuhan Bulang Linggi (Tg.Uban)', lat: 1.06338459600004, lon: 104.2171415 },
+    { code: 'XR022', name: 'Pelabuhan Roro Tg. Uban', lat: 1.062394886, lon: 104.219783524 },
+    { code: 'XR024', name: 'Pelabuhan Sri Tanjung Gelam', lat: 0.989015461, lon: 103.43385554 },
+    { code: 'XR025', name: 'Pelabuhan Cargo dan Roro Parit', lat: 1.004616404, lon: 103.353492504 },
+    { code: 'XR026', name: 'Pelabuhan Bintang 99', lat: 1.16048082437207, lon: 103.995463970211 },
+    { code: 'XR027', name: 'Pelabuhan Khusus Bea Cukai', lat: 0.992177, lon: 103.394469 },
+    { code: 'XB001', name: 'Pelabuhan Belawan', lat: 3.79555315500005, lon: 98.71386105 },
+    { code: 'XC001', name: 'Pelabuhan Dumai', lat: 1.70003335523581, lon: 101.468511309208 },
+    { code: 'XC002', name: 'Pelabuhan Pekanbaru', lat: 1.28061485992583, lon: 102.189682564459 }
+];
+
+// ============================================
+// WATERS - Code and name only, data from API
+// ============================================
+const WATERS = [
+    { code: 'P.B.01', name: 'Perairan Timur Sumatera Utara' },
+    { code: 'P.R.01', name: 'Perairan Kep. Karimun' },
+    { code: 'P.R.02', name: 'Perairan Kep. Batam' },
+    { code: 'P.R.03', name: 'Perairan Kep. Bintan' },
+    { code: 'P.R.04', name: 'Perairan Kep. Lingga' },
+    { code: 'P.R.05', name: 'Perairan Kep. Tambelan' },
+    { code: 'P.Q.01', name: 'Perairan Selatan Kep. Anambas' },
+    { code: 'P.Q.02', name: 'Perairan Utara Kep. Anambas' },
+    { code: 'P.Q.03', name: 'Perairan Kep. Natuna - Anambas' },
+    { code: 'P.Q.04', name: 'Perairan Utara Kep. Natuna' },
+    { code: 'P.Q.05', name: 'Perairan Barat Kep. Natuna' },
+    { code: 'P.Q.06', name: 'Perairan Selatan Kep. Natuna' },
+    { code: 'P.Q.07', name: 'Perairan Timur Kep. Natuna' },
+    { code: 'P.Q.08', name: 'Perairan Kep. Subi - Serasan' },
+    { code: 'M.17', name: 'Selat Karimata bagian utara' },
+    { code: 'P.C.01', name: 'Perairan Rokan Hilir' },
+    { code: 'P.C.02', name: 'Perairan Dumai - Bengkalis' },
+    { code: 'P.C.03', name: 'Perairan Kep. Meranti - Pelalawan' },
+    { code: 'M.02', name: 'Selat Malaka bagian tengah' }
+];
+
+const KEPRI_BOUNDS = [[-1.0, 96.0], [5.5, 109.5]];
+
+let mapPort, mapSea, portMarkers = [], seaPolygons = [];
+let portsData = {}, watersData = {}, geoData = null;
+
+// ============================================
+// UTILITY
+// ============================================
+function updateClock() {
+    const now = new Date();
+    const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID');
+    document.getElementById('date').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+function updateRefreshTimer() {
+    refreshCountdown--;
+    if(refreshCountdown <= 0) {
+        refreshCountdown = AUTO_REFRESH_INTERVAL / 1000;
+        console.log('Auto refresh triggered!');
+        doAutoRefresh();
+    }
+    const mins = Math.floor(refreshCountdown / 60);
+    const secs = refreshCountdown % 60;
+    document.getElementById('refresh-timer').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
+}
+
+function startRefreshTimer() {
+    if(refreshTimer) clearInterval(refreshTimer);
+    refreshCountdown = AUTO_REFRESH_INTERVAL / 1000;
+    refreshTimer = setInterval(updateRefreshTimer, 1000);
+}
+
+async function doAutoRefresh() { await loadData(); }
+
+function getWaveClass(c) { return { 'Tenang': 'bg-tenang', 'Rendah': 'bg-rendah', 'Sedang': 'bg-sedang', 'Tinggi': 'bg-tinggi', 'Sangat Tinggi': 'bg-tinggi', 'Ekstrem': 'bg-tinggi' }[c] || 'bg-tenang'; }
+function getWaveColor(c) { return { 'Tenang': '#2196F3', 'Rendah': '#4CAF50', 'Sedang': '#FF9800', 'Tinggi': '#f44336', 'Sangat Tinggi': '#f44336', 'Ekstrem': '#9c27b0' }[c] || '#2196F3'; }
+function getWeatherIcon(w) { if(!w) return 'fa-cloud'; const wl = w.toLowerCase(); if(wl.includes('lebat') || wl.includes('petir')) return 'fa-cloud-showers-heavy'; if(wl.includes('hujan')) return 'fa-cloud-rain'; if(wl.includes('cerah') && !wl.includes('berawan')) return 'fa-sun'; if(wl.includes('cerah berawan')) return 'fa-cloud-sun'; return 'fa-cloud'; }
+function getIconClass(w) { if(!w) return 'berawan'; const wl = w.toLowerCase(); if(wl.includes('cerah') && !wl.includes('berawan')) return 'cerah'; if(wl.includes('hujan')) return 'hujan'; return 'berawan'; }
+function safe(v, d) { return (v !== undefined && v !== null && v !== '' && !Number.isNaN(v)) ? v : d; }
+
+function getWindDirection(deg) {
+    const dirs = ['Utara', 'Timur Laut', 'Timur', 'Tenggara', 'Selatan', 'Barat Daya', 'Barat', 'Barat Laut'];
+    return dirs[Math.round(deg / 45) % 8];
+}
+
+function formatDateShort(date) {
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+    return `${date.getDate()} ${months[date.getMonth()]}`;
+}
+
+// ============================================
+// ALARM SYSTEM
+// ============================================
+function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+function playSiren() {
+    if(isMuted) return;
+    initAudio();
+    if(sirenOscillator) stopSiren();
+    sirenOscillator = audioCtx.createOscillator();
+    sirenGain = audioCtx.createGain();
+    sirenOscillator.type = 'sawtooth';
+    sirenOscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+    sirenGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    sirenOscillator.connect(sirenGain);
+    sirenGain.connect(audioCtx.destination);
+    sirenOscillator.start();
+    function sweep() { if(!sirenOscillator) return; const n = audioCtx.currentTime; sirenOscillator.frequency.setValueAtTime(400,n); sirenOscillator.frequency.linearRampToValueAtTime(800,n+0.5); sirenOscillator.frequency.linearRampToValueAtTime(400,n+1); }
+    sweep(); sirenInterval = setInterval(sweep, 1000);
+}
+
+function stopSiren() { if(sirenInterval) { clearInterval(sirenInterval); sirenInterval = null; } if(sirenOscillator) { try { sirenOscillator.stop(); sirenOscillator.disconnect(); } catch(e) {} sirenOscillator = null; } if(sirenGain) { try { sirenGain.disconnect(); } catch(e) {} sirenGain = null; } }
+
+function triggerAlarm(type, msg) {
+    if(isMuted) return;
+    document.getElementById('alarm-text').textContent = msg;
+    document.getElementById('alarm-overlay').classList.add('active');
+    document.getElementById('alarm-banner').classList.add('active');
+    playSiren();
+    if(alarmTimeout) clearTimeout(alarmTimeout);
+    alarmTimeout = setTimeout(stopAlarm, 15000);
+}
+
+function stopAlarm() { document.getElementById('alarm-overlay').classList.remove('active'); document.getElementById('alarm-banner').classList.remove('active'); stopSiren(); }
+function muteAlarm() { stopAlarm(); isMuted = true; updateMuteButton(); setTimeout(() => { isMuted = false; updateMuteButton(); }, 5 * 60 * 1000); }
+function toggleMute() { isMuted = !isMuted; updateMuteButton(); if(isMuted) stopAlarm(); }
+function updateMuteButton() { const btn = document.getElementById('btn-mute'); if(isMuted) { btn.innerHTML = '<i class="fas fa-volume-mute"></i>'; btn.classList.add('active'); } else { btn.innerHTML = '<i class="fas fa-volume-up"></i>'; btn.classList.remove('active'); } }
+
+function checkAlarms(windKnots, rain) {
+    if(rain >= 0.1 && !firstRainDetected) { firstRainDetected = true; lastRainAlarmAt = rain; triggerAlarm('rain', `🌧️ HUJAN TERDETEKSI: ${rain.toFixed(1)} mm`); }
+    else if(rain >= lastRainAlarmAt + 20) { lastRainAlarmAt = rain; triggerAlarm('rain', `🌧️ CURAH HUJAN BERTAMBAH: ${rain.toFixed(1)} mm`); }
+    if(windKnots >= WIND_THRESHOLD && !lastWindAlarmTriggered) { lastWindAlarmTriggered = true; triggerAlarm('wind', `💨 ANGIN KENCANG: ${windKnots.toFixed(1)} kt`); }
+    else if(windKnots < WIND_THRESHOLD) { lastWindAlarmTriggered = false; }
+}
+
+// ============================================
+// DATA LOADING
+// ============================================
+async function loadAWSData() {
+    console.log('Loading AWS data...');
+    const data = await fetchWithProxy('http://202.90.199.132/aws-new/data/station/latest/3000000023');
+    if(data && data.temp) {
+        awsData = data;
+        awsOnline = true;
+        console.log('AWS data loaded:', data);
+        updateAWSDisplay();
+        return true;
+    }
+    awsOnline = false;
+    console.log('AWS data failed');
+    return false;
+}
+
+function updateAWSDisplay() {
+    const badge = document.getElementById('aws-badge');
+    if(!awsData || !awsOnline) {
+        badge.textContent = 'OFFLINE';
+        badge.classList.add('offline');
+        return;
+    }
+    
+    badge.textContent = 'AWS LIVE';
+    badge.classList.remove('offline');
+    
+    const temp = parseFloat(awsData.temp) || 27;
+    const rh = parseFloat(awsData.rh) || 80;
+    const pressure = parseFloat(awsData.pressure) || 1008;
+    const rain = parseFloat(awsData.rain) || 0;
+    const windMs = parseFloat(awsData.windspeed) || 0;
+    const windKnots = windMs * 1.94384;
+    const windDir = parseFloat(awsData.winddir) || 0;
+    const waterTemp = parseFloat(awsData.watertemp) || 29;
+    const waterLevel = parseFloat(awsData.waterlevel) || 1.5;
+    
+    let weather = 'Berawan';
+    if(rain > 5) weather = 'Hujan Lebat';
+    else if(rain > 2) weather = 'Hujan Sedang';
+    else if(rain > 0) weather = 'Hujan Ringan';
+    
+    document.getElementById('aws-icon').innerHTML = `<i class="fas ${getWeatherIcon(weather)}"></i>`;
+    document.getElementById('aws-icon').className = 'weather-icon ' + getIconClass(weather);
+    document.getElementById('aws-temp').textContent = temp.toFixed(1) + '°C';
+    document.getElementById('aws-desc').textContent = weather;
+    
+    if(awsData.waktu) {
+        document.getElementById('aws-timestamp').textContent = 'Update: ' + awsData.waktu.split(' ')[1] + ' WIB';
+    }
+    
+    const windDirName = getWindDirection(windDir);
+    document.getElementById('aws-wind-speed').textContent = windKnots.toFixed(1) + ' kt';
+    document.getElementById('aws-wind-dir').textContent = `${windDirName} (${windDir.toFixed(0)}°)`;
+    document.getElementById('aws-wind-ms').textContent = windMs.toFixed(2) + ' m/s';
+    document.getElementById('aws-wind-deg').textContent = `${windDirName} (${windDir.toFixed(0)}°)`;
+    document.getElementById('compass-arrow').style.transform = `translate(-50%, -100%) rotate(${windDir}deg)`;
+    
+    document.getElementById('aws-rh').textContent = rh.toFixed(0) + '%';
+    document.getElementById('aws-pressure').textContent = pressure.toFixed(1) + ' hPa';
+    document.getElementById('aws-watertemp').textContent = waterTemp.toFixed(1) + '°C';
+    document.getElementById('aws-rain').textContent = rain.toFixed(1) + ' mm';
+    document.getElementById('aws-waterlevel').textContent = waterLevel.toFixed(2) + ' m';
+    
+    let waveHeight = 0.3, waveCat = 'Tenang';
+    if(windKnots >= 22) { waveHeight = 2.5; waveCat = 'Tinggi'; }
+    else if(windKnots >= 17) { waveHeight = 1.5; waveCat = 'Sedang'; }
+    else if(windKnots >= 11) { waveHeight = 0.8; waveCat = 'Rendah'; }
+    
+    document.getElementById('aws-wave').textContent = waveHeight.toFixed(1) + ' m';
+    const bar = document.getElementById('aws-bar');
+    bar.className = 'wave-status-bar ' + getWaveClass(waveCat);
+    bar.innerHTML = `<i class="fas fa-ship"></i> KONDISI LAUT: ${waveCat.toUpperCase()}`;
+    
+    checkAlarms(windKnots, rain);
+}
+
+async function loadData() {
+    console.log('Loading data...');
+    showLoading(true);
+    showUpdatingBadge();
+    
+    // Load AWS
+    await loadAWSData();
+    
+    // Load GeoJSON for polygons
+    console.log('Loading GeoJSON polygons...');
+    const geo = await fetchWithProxy('https://maritim.bmkg.go.id/marine-data/meta/wilmetos_w_port.json');
+    if(geo && geo.features) {
+        geoData = geo;
+        console.log('GeoJSON loaded:', geo.features.length, 'features');
+    }
+    
+    // Load port forecasts
+    console.log('Loading port forecasts...');
+    for(const port of PORTS) {
+        const data = await fetchWithProxy(`https://maritim.bmkg.go.id/marine-data/pelabuhan/${port.code}.json`);
+        if(data && data.forecast_day1) {
+            portsData[port.code] = data;
+        }
+    }
+    console.log('Loaded ports:', Object.keys(portsData).length);
+    
+    // Load water forecasts
+    console.log('Loading water forecasts...');
+    for(const water of WATERS) {
+        const data = await fetchWithProxy(`https://maritim.bmkg.go.id/marine-data/perairan/${water.code}.json`);
+        if(data && data.forecast_day1) {
+            watersData[water.code] = data;
+            // Update water info from API
+            water.wave_cat = data.forecast_day1[0]?.wave_cat || 'Tenang';
+            water.wave_height = data.forecast_day1[0]?.wave_height || 0.5;
+            water.wind_from = data.forecast_day1[0]?.wind_from || 'Utara';
+            water.wind = `${data.forecast_day1[0]?.wind_speed || 8}-${data.forecast_day1[0]?.wind_gust || 15}`;
+        }
+    }
+    console.log('Loaded waters:', Object.keys(watersData).length);
+    
+    updateAll();
+    showLoading(false);
+    hideUpdatingBadge();
+    
+    refreshCountdown = AUTO_REFRESH_INTERVAL / 1000;
+    document.getElementById('port-count').textContent = PORTS.length + ' Pelabuhan';
+    document.getElementById('water-count').textContent = WATERS.length + ' Perairan';
+}
+
+function showLoading(show) {
+    const overlay = document.getElementById('loading-overlay');
+    if(show) overlay.classList.remove('hidden');
+    else overlay.classList.add('hidden');
+}
+
+function showUpdatingBadge() { document.getElementById('updating-badge').style.display = 'flex'; document.getElementById('data-badge').style.display = 'none'; }
+function hideUpdatingBadge() { document.getElementById('updating-badge').style.display = 'none'; document.getElementById('data-badge').style.display = 'flex'; }
+
+async function manualRefresh() { await loadData(); }
+
+// ============================================
+// UPDATE ALL
+// ============================================
+function updateAll() {
+    if(awsData) updateAWSDisplay();
+    buildForecast();
+    buildPortList();
+    buildWaterList();
+    updateNowcast();
+    updateTicker();
+    updateRadar();
+    updateModel();
+    document.getElementById('update-time').textContent = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('fc-update-time').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) + ' WIB';
+    if(mapPort) drawPortMarkers();
+    if(mapSea) drawSeaPolygons();
+}
+
+// ============================================
+// FORECAST
+// ============================================
+function buildForecast() {
+    const fc = portsData['XR023']?.forecast_day1;
+    const now = new Date();
+    const nowUTC = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    
+    let html = '';
+    let futureFc = [];
+    
+    if(fc && fc.length > 0) {
+        for(let i = 0; i < fc.length; i++) {
+            const fcTime = new Date(fc[i].time.replace(' UTC', 'Z'));
+            if(fcTime > nowUTC) {
+                futureFc.push(fc[i]);
+                if(futureFc.length >= 8) break;
+            }
+        }
+    }
+    
+    if(futureFc.length === 0) {
+        html = '<div style="grid-column:span 8;text-align:center;padding:50px;color:#666;"><i class="fas fa-exclamation-circle" style="font-size:3rem;color:#ff9800;display:block;margin-bottom:15px;"></i>Data prakiraan belum tersedia atau sedang dimuat...</div>';
+    } else {
+        futureFc.slice(0, 8).forEach((f, i) => {
+            const fcTime = new Date(f.time.replace(' UTC', 'Z'));
+            const wibTime = new Date(fcTime.getTime() + 7 * 60 * 60 * 1000);
+            const h = wibTime.getHours();
+            
+            html += `<div class="fc-card-large ${i===0?'active':''}">
+                <div class="fc-time">${String(h).padStart(2,'0')}.00</div>
+                <div class="fc-date">${formatDateShort(wibTime)}</div>
+                <div class="fc-icon ${getIconClass(f.weather)}"><i class="fas ${getWeatherIcon(f.weather)}"></i></div>
+                <div class="fc-temp">${safe(f.temp_avg,27)}°C</div>
+                <div class="fc-wave ${getWaveClass(f.wave_cat)}">${parseFloat(safe(f.wave_height,0.3)).toFixed(1)}m</div>
+                <div class="fc-wind-dir"><i class="fas fa-location-arrow"></i> ${f.wind_from || 'Utara'}</div>
+                <div class="fc-wind">${safe(f.wind_speed,8)}-${safe(f.wind_gust,14)} kt</div>
+                <div class="fc-extra">Vis: ${safe(f.visibility,10)} km</div>
+            </div>`;
+        });
+    }
+    
+    document.getElementById('fc-grid').innerHTML = html;
+}
+
+// ============================================
+// PORT LIST
+// ============================================
+function buildPortList() {
+    const others = PORTS.filter(p => !p.main);
+    let html = '';
+    const now = new Date();
+    const nowUTC = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    
+    others.forEach((p, idx) => {
+        const pData = portsData[p.code];
+        const fc = pData?.forecast_day1;
+        
+        let currentFc = null;
+        let futureFc = [];
+        
+        if(fc && fc.length > 0) {
+            for(let i = 0; i < fc.length; i++) {
+                const fcTime = new Date(fc[i].time.replace(' UTC', 'Z'));
+                if(fcTime > nowUTC) {
+                    if(!currentFc) currentFc = fc[i];
+                    futureFc.push(fc[i]);
+                    if(futureFc.length >= 8) break;
+                }
+            }
+        }
+        
+        const f = currentFc || {};
+        
+        let fcHtml = '';
+        for(let i = 0; i < 8; i++) {
+            const fd = futureFc[i];
+            if(fd) {
+                const fcTime = new Date(fd.time.replace(' UTC', 'Z'));
+                const wibTime = new Date(fcTime.getTime() + 7 * 60 * 60 * 1000);
+                fcHtml += `<div class="port-fc-item ${i===0?'current':''}">
+                    <div class="fc-date-small">${wibTime.getDate()}/${wibTime.getMonth()+1}</div>
+                    ${String(wibTime.getHours()).padStart(2,'0')}.00<br>
+                    <i class="fas ${getWeatherIcon(fd.weather)} ${getIconClass(fd.weather)}" style="font-size:0.9rem;margin:2px 0;display:block;"></i>
+                    ${parseFloat(safe(fd.wave_height,0.3)).toFixed(1)}m
+                </div>`;
+            } else {
+                fcHtml += `<div class="port-fc-item">--</div>`;
+            }
+        }
+        
+        let validInfo = pData?.valid_from ? formatDateShort(new Date(pData.valid_from.replace(' UTC', 'Z'))) : formatDateShort(now);
+        
+        html += `<div class="port-card" data-idx="${idx}">
+            <div class="port-card-head">
+                <div class="port-name">${p.name}</div>
+                <div class="port-time">${validInfo}</div>
+            </div>
+            <div class="port-data-grid">
+                <div class="port-data-item"><div class="label">Cuaca</div><div class="value"><i class="fas ${getWeatherIcon(f.weather)}"></i> ${safe(f.temp_avg,'--')}°C</div></div>
+                <div class="port-data-item"><div class="label">Angin</div><div class="value">${f.wind_from || '--'}<br>${safe(f.wind_speed,'--')}-${safe(f.wind_gust,'--')} kt</div></div>
+                <div class="port-data-item"><div class="label">Arus</div><div class="value">${f.current_to || '--'}<br>${safe(f.current_speed,'--')} cm/s</div></div>
+                <div class="port-data-item"><div class="label">Vis</div><div class="value">${safe(f.visibility,'--')} km</div></div>
+                <div class="port-data-item"><div class="label">RH</div><div class="value">${safe(f.rh_avg,'--')}%</div></div>
+                <div class="port-data-item wave-badge"><div class="label">Gel</div><div class="value ${getWaveClass(f.wave_cat)}">${f.wave_height ? parseFloat(f.wave_height).toFixed(1)+'m' : '--'}</div></div>
+            </div>
+            <div class="port-forecast-row">${fcHtml}</div>
+        </div>`;
+    });
+    
+    document.getElementById('port-list').innerHTML = html + html;
+}
+
+// ============================================
+// WATER LIST
+// ============================================
+function buildWaterList() {
+    let html = '';
+    const now = new Date();
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+    
+    WATERS.forEach((w, idx) => {
+        const wData = watersData[w.code];
+        const fc = wData?.forecast_day1;
+        const f = fc?.[0] || {};
+        
+        const waveCat = f.wave_cat || w.wave_cat || 'Tenang';
+        const waveHeight = f.wave_height || w.wave_height || 0.5;
+        const windFrom = f.wind_from || w.wind_from || 'Utara';
+        const wind = w.wind || `${f.wind_speed || 8}-${f.wind_gust || 15}`;
+        const color = getWaveColor(waveCat);
+        
+        let daysHtml = '';
+        for(let i = 0; i < 4; i++) {
+            const dayDate = new Date(now);
+            dayDate.setDate(dayDate.getDate() + i);
+            const label = i===0 ? 'Hari Ini' : i===1 ? 'Besok' : dayDate.getDate() + ' ' + months[dayDate.getMonth()];
+            const fd = fc?.[Math.min(i*8, (fc?.length||1)-1)] || f;
+            
+            daysHtml += `<div class="wf-day ${i===0?'today':''}" style="${i===0?'background:'+color:''}">
+                <div class="wf-label">${label}</div>
+                <div class="wf-icon ${getIconClass(fd.weather)}"><i class="fas ${getWeatherIcon(fd.weather)}"></i></div>
+                <div class="wf-wind-dir"><i class="fas fa-location-arrow"></i> ${fd.wind_from || windFrom}</div>
+                <div class="wf-wind">${safe(fd.wind_speed,10)}-${safe(fd.wind_gust,16)} kt</div>
+                <div class="wf-wave">${parseFloat(safe(fd.wave_height, waveHeight)).toFixed(1)}m</div>
+                <div class="wf-cat">${fd.wave_cat || waveCat}</div>
+            </div>`;
+        }
+        
+        html += `<div class="water-card" data-idx="${idx}" data-code="${w.code}" style="border-left-color:${color}">
+            <div class="water-card-head"><span class="water-name">${w.name}</span><span class="water-code">${w.code}</span></div>
+            <div class="water-info-row">
+                <span><i class="fas fa-location-arrow"></i> Angin: ${windFrom}</span>
+                <span><i class="fas fa-wind"></i> ${wind} kt</span>
+            </div>
+            <div class="water-forecast-grid">${daysHtml}</div>
+        </div>`;
+    });
+    
+    document.getElementById('water-list').innerHTML = html;
+}
+
+// ============================================
+// NOWCAST
+// ============================================
+function updateNowcast() {
+    const highWaves = WATERS.filter(w => w.wave_cat === 'Sedang' || w.wave_cat === 'Tinggi');
+    const now = new Date();
+    const dateStr = `${now.getDate()} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][now.getMonth()]} ${now.getFullYear()}`;
+    
+    let warningContent = highWaves.length > 0 
+        ? `<div class="warning-text"><h4>⚠️ Peringatan Gelombang</h4><p>Terdapat ${highWaves.length} perairan dengan gelombang SEDANG hingga TINGGI. Mohon waspada!</p></div>`
+        : `<div style="padding:15px;background:#e8f5e9;color:#2e7d32;border-radius:8px;text-align:center;"><i class="fas fa-check-circle" style="font-size:2rem;display:block;margin-bottom:8px;"></i><h4>Tidak Ada Peringatan Aktif</h4><p style="font-size:0.85rem;">Per ${dateStr}</p><p style="font-size:0.8rem;margin-top:8px;color:#666;">Prakirawan BMKG - Kep. Riau</p></div>`;
+    
+    document.getElementById('nowcast-panel').innerHTML = `
+        <div class="nowcast-title"><h2><i class="fas fa-exclamation-triangle"></i> PERINGATAN DINI CUACA & KESELAMATAN PELAYARAN</h2></div>
+        <div class="nowcast-grid">
+            <div class="nowcast-box warning"><div class="nowcast-box-title"><i class="fas fa-bolt" style="color:var(--danger)"></i> Peringatan Dini Cuaca Kepri</div><div class="nowcast-content">${warningContent}</div></div>
+            <div class="nowcast-box maritime"><div class="nowcast-box-title"><i class="fas fa-water" style="color:var(--accent)"></i> Peringatan Gelombang</div><div class="nowcast-content"><div class="area-list">${highWaves.length > 0 ? highWaves.map(a => `<span class="area-tag ${a.wave_cat==='Sedang'?'sedang':'tinggi'}">${a.name}: ${a.wave_height}m (${a.wave_cat})</span>`).join('') : '<span style="color:#666;">Tidak ada peringatan</span>'}</div></div></div>
+            <div class="nowcast-box safety"><div class="nowcast-box-title"><i class="fas fa-life-ring" style="color:var(--success)"></i> Info Keselamatan Pelayaran</div><div class="nowcast-content"><div class="ship-grid"><div class="ship-item"><i class="fas fa-ship" style="color:#1565c0"></i><span><strong>Perahu Nelayan</strong><br>Waspada: Angin &gt;15kt, Gel &gt;1.25m</span></div><div class="ship-item"><i class="fas fa-truck-loading" style="color:#2e7d32"></i><span><strong>Kapal Tongkang</strong><br>Waspada: Angin &gt;16kt, Gel &gt;1.5m</span></div><div class="ship-item"><i class="fas fa-ferry" style="color:#c62828"></i><span><strong>Kapal Ferry</strong><br>Waspada: Angin &gt;21kt, Gel &gt;2.5m</span></div><div class="ship-item"><i class="fas fa-container-storage" style="color:#6a1b9a"></i><span><strong>Kapal Kargo</strong><br>Waspada: Angin &gt;27kt, Gel &gt;4.0m</span></div></div></div></div>
+            <div class="nowcast-box info"><div class="nowcast-box-title"><i class="fas fa-info-circle" style="color:var(--primary)"></i> Sumber Informasi</div><div class="nowcast-content"><div style="background:#e3f2fd;padding:12px;border-radius:8px;"><p style="margin-bottom:8px;"><strong>Data Cuaca:</strong> BMKG</p><p style="margin-bottom:8px;"><strong>Peringatan Dini:</strong> <a href="https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca/21" target="_blank" style="color:var(--primary);">BMKG Nowcast Kepri</a></p><p style="margin-bottom:8px;"><strong>Stasiun:</strong> Meteorologi Raja Haji Abdullah</p><p style="padding-top:8px;border-top:1px solid #90caf9;"><strong>📞 Hotline:</strong> +62 812-7018-6433</p></div></div></div>
+        </div>`;
+}
+
+function updateTicker() {
+    const highWaves = WATERS.filter(w => w.wave_cat === 'Sedang' || w.wave_cat === 'Tinggi').map(w => w.name);
+    let text = 'Selamat datang di Display Cuaca Maritim Posko Nataru 2025 | Stasiun Meteorologi Raja Haji Abdullah | Total ' + PORTS.length + ' Pelabuhan & ' + WATERS.length + ' Perairan dipantau | 📞 Hotline: +62 812-7018-6433';
+    if(highWaves.length > 0) text += ' | ⚠️ GELOMBANG SEDANG-TINGGI: ' + highWaves.join(', ');
+    if(awsData && awsOnline) text += ' | 🌡️ AWS Live: ' + parseFloat(awsData.temp).toFixed(1) + '°C, Hujan: ' + parseFloat(awsData.rain).toFixed(1) + 'mm';
+    document.getElementById('ticker').textContent = text;
+}
+
+// ============================================
+// RADAR & MODEL
+// ============================================
+function updateRadar() {
+    const container = document.getElementById('radar-content');
+    if(!container) return;
+    container.innerHTML = `
+        <img src="https://radar.bmkg.go.id/ANIMASI/CMAX-HWIND_Batam.gif?t=${Date.now()}" alt="Radar" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;" onerror="this.src='https://radar.bmkg.go.id/STATIS/Batam/CMAX_Batam.png?t=${Date.now()}'">
+        <div class="radar-legend"><h4><i class="fas fa-info-circle"></i> Legenda</h4><p><strong>dBZ:</strong> Biru=ringan, Kuning=sedang, Merah=lebat</p><p><strong>Wind Barb:</strong> ½garis=5kt, garis=10kt</p></div>
+    `;
+}
+
+function updateModel() {
+    const container = document.getElementById('model-content');
+    if(!container) return;
+    
+    const now = new Date();
+    let runDate = new Date(now);
+    runDate.setUTCHours(0, 0, 0, 0);
+    if(now.getUTCHours() < 6) runDate.setUTCDate(runDate.getUTCDate() - 1);
+    
+    const ry = runDate.getUTCFullYear();
+    const rm = String(runDate.getUTCMonth() + 1).padStart(2, '0');
+    const rd = String(runDate.getUTCDate()).padStart(2, '0');
+    const folder = `${ry}${rm}${rd}00`;
+    
+    let fcDate = new Date(runDate);
+    fcDate.setUTCDate(fcDate.getUTCDate() + 2);
+    const swhFile = `${fcDate.getUTCFullYear()}${String(fcDate.getUTCMonth()+1).padStart(2,'0')}${String(fcDate.getUTCDate()).padStart(2,'0')}00`;
+    
+    let wsDate = new Date(runDate);
+    wsDate.setUTCDate(wsDate.getUTCDate() + 3);
+    const wsFile = `${wsDate.getUTCFullYear()}${String(wsDate.getUTCMonth()+1).padStart(2,'0')}${String(wsDate.getUTCDate()).padStart(2,'0')}18`;
+    
+    const csdFile = `${ry}${rm}${rd}18`;
+    
+    const models = {
+        swh: { url: `https://peta-maritim.bmkg.go.id/render-static/w3g/${ry}/${rm}/${folder}/batam/swh_${swhFile}.png`, label: 'Tinggi Gelombang (SWH)' },
+        ws: { url: `https://peta-maritim.bmkg.go.id/render-static/w3g/${ry}/${rm}/${folder}/batam/ws_${wsFile}.png`, label: 'Kecepatan Angin' },
+        csd: { url: `https://peta-maritim.bmkg.go.id/render-static/inaflows/${ry}/${rm}/${folder}/batam/csd_0_${csdFile}.png`, label: 'Kecepatan Arus' }
+    };
+    
+    const m = models[currentModel];
+    container.innerHTML = `
+        <div class="model-selector">
+            <button class="model-btn ${currentModel==='swh'?'active':''}" onclick="setModel('swh')"><i class="fas fa-water"></i> Gelombang</button>
+            <button class="model-btn ${currentModel==='ws'?'active':''}" onclick="setModel('ws')"><i class="fas fa-wind"></i> Angin</button>
+            <button class="model-btn ${currentModel==='csd'?'active':''}" onclick="setModel('csd')"><i class="fas fa-arrows-alt"></i> Arus</button>
+        </div>
+        <img src="${m.url}" alt="${m.label}" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.style.display='none';this.parentElement.innerHTML+='<div style=\\'color:white;text-align:center;\\'>Model belum tersedia</div>'">
+    `;
+    document.getElementById('model-label').textContent = m.label;
+    document.getElementById('model-info').innerHTML = `<i class="fas fa-info-circle"></i> ${m.label}`;
+    document.getElementById('model-time').innerHTML = `<i class="fas fa-clock"></i> Run: ${rd}/${rm}/${ry} 00 UTC`;
+}
+
+function setModel(m) { currentModel = m; updateModel(); }
+
+// ============================================
+// MAPS
+// ============================================
+function initMaps() {
+    mapPort = L.map('map-port', { zoomControl: false, attributionControl: false }).setView([1.5, 104.0], 7);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapPort);
+    L.control.zoom({ position: 'bottomright' }).addTo(mapPort);
+
+    mapSea = L.map('map-sea', { zoomControl: false, attributionControl: false }).fitBounds(KEPRI_BOUNDS);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapSea);
+    L.control.zoom({ position: 'bottomright' }).addTo(mapSea);
+}
+
+function drawPortMarkers() {
+    portMarkers.forEach(m => mapPort.removeLayer(m.marker));
+    portMarkers = [];
+    const others = PORTS.filter(p => !p.main);
+    others.forEach((p, idx) => {
+        const f = portsData[p.code]?.forecast_day1?.[0] || {};
+        const cat = f.wave_cat || 'Tenang';
+        const color = getWaveColor(cat);
+        const icon = L.divIcon({ className: '', html: `<div class="weather-marker" style="border-color:${color}"><i class="fas ${getWeatherIcon(f.weather)}" style="color:${color}"></i></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
+        const marker = L.marker([p.lat, p.lon], { icon }).bindTooltip(`<strong>${p.name}</strong><br>Gel: ${cat}`, { sticky: true }).addTo(mapPort);
+        portMarkers.push({ marker, idx, lat: p.lat, lon: p.lon });
+    });
+}
+
+function drawSeaPolygons() {
+    seaPolygons.forEach(p => { if(p.polygon) mapSea.removeLayer(p.polygon); if(p.label) mapSea.removeLayer(p.label); });
+    seaPolygons = [];
+    
+    if(!geoData || !geoData.features) {
+        console.log('No GeoJSON data for polygons');
+        return;
+    }
+    
+    const waterCodes = new Set(WATERS.map(w => w.code));
+    
+    geoData.features.forEach(feat => {
+        if(!feat.geometry || feat.geometry.type === 'Point') return;
+        
+        const code = feat.properties?.ID_MAR;
+        if(!code || !waterCodes.has(code)) return;
+        
+        const wInfo = WATERS.find(w => w.code === code);
+        if(!wInfo) return;
+        
+        const waveCat = wInfo.wave_cat || 'Tenang';
+        const waveHeight = wInfo.wave_height || 0.5;
+        const color = getWaveColor(waveCat);
+        
+        try {
+            let coords = [];
+            if(feat.geometry.type === 'Polygon') {
+                coords = feat.geometry.coordinates[0].map(c => [c[1], c[0]]).filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+            } else if(feat.geometry.type === 'MultiPolygon') {
+                coords = feat.geometry.coordinates[0][0].map(c => [c[1], c[0]]).filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+            }
+            
+            if(coords.length < 3) return;
+            
+            const polygon = L.polygon(coords, { color: '#000', weight: 2, fillColor: color, fillOpacity: 0.5 })
+                .bindTooltip(`<strong>${wInfo.name}</strong><br>Gel: ${waveCat} (${waveHeight}m)<br>Angin: ${wInfo.wind_from || 'Utara'} ${wInfo.wind || '8-15'} kt`, { sticky: true })
+                .addTo(mapSea);
+            
+            const center = polygon.getBounds().getCenter();
+            const label = L.marker(center, {
+                icon: L.divIcon({
+                    className: '',
+                    html: `<div style="background:${color};color:white;padding:3px 8px;border-radius:6px;font-size:0.7rem;font-weight:bold;text-align:center;border:1px solid #000">${code}<br>${waveHeight}m</div>`,
+                    iconSize: [65, 35], iconAnchor: [32, 17]
+                })
+            }).addTo(mapSea);
+            
+            seaPolygons.push({ polygon, label, code, name: wInfo.name });
+        } catch(e) {
+            console.log('Error drawing polygon for', code, e);
+        }
+    });
+    
+    console.log('Drew', seaPolygons.length, 'water polygons');
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+function highlightPortOnMap(idx) { portMarkers.forEach(pm => pm.marker.getElement()?.querySelector('.weather-marker')?.classList.remove('highlight')); if(portMarkers[idx]) { portMarkers[idx].marker.getElement()?.querySelector('.weather-marker')?.classList.add('highlight'); mapPort.flyTo([portMarkers[idx].lat, portMarkers[idx].lon], 10, { animate: true, duration: 0.5 }); } }
+function highlightWaterOnMap(idx) { seaPolygons.forEach(sp => { if(sp.polygon) sp.polygon.setStyle({ weight: 2, fillOpacity: 0.5 }); }); const code = WATERS[idx]?.code; const p = seaPolygons.find(sp => sp.code === code); if(p && p.polygon) { p.polygon.setStyle({ weight: 5, fillOpacity: 0.8 }); p.polygon.bringToFront(); mapSea.flyToBounds(p.polygon.getBounds(), { animate: true, duration: 0.5, padding: [50, 50] }); } }
+
+function scrollPortList(dir) { const others = PORTS.filter(p => !p.main); portIdx = Math.max(0, Math.min(others.length-1, portIdx + dir)); animatePortListToIdx(portIdx); }
+function scrollWaterList(dir) { waterIdx = Math.max(0, Math.min(WATERS.length-1, waterIdx + dir)); animateWaterListToIdx(waterIdx); }
+
+function animatePortListToIdx(idx) { const list = document.getElementById('port-list'); if(!list) return; const items = list.querySelectorAll('.port-card'); items.forEach(it => it.classList.remove('active')); const others = PORTS.filter(p => !p.main); const target = idx % others.length; if(items[target]) items[target].classList.add('active'); if(items[target + others.length]) items[target + others.length].classList.add('active'); list.style.transform = `translateY(-${target * (items[0]?.offsetHeight || 150)}px)`; if(current === 3) highlightPortOnMap(target); }
+function animateWaterListToIdx(idx) { const list = document.getElementById('water-list'); if(!list) return; const cards = list.querySelectorAll('.water-card'); cards.forEach(c => c.classList.remove('active')); const target = idx % WATERS.length; if(cards[target]) { cards[target].classList.add('active'); list.style.transform = `translateY(-${Math.max(0, target-1) * (cards[0]?.offsetHeight || 170)}px)`; } if(current === 4) highlightWaterOnMap(target); }
+
+function animateForecast() { const items = document.querySelectorAll('#fc-grid .fc-card-large'); if(!items.length) return; items.forEach(it => it.classList.remove('active')); fcIdx = (fcIdx+1)%items.length; items[fcIdx].classList.add('active'); }
+function animatePortList() { const others = PORTS.filter(p => !p.main); portIdx = (portIdx+1) % others.length; animatePortListToIdx(portIdx); }
+function animateWaterList() { waterIdx = (waterIdx+1) % WATERS.length; animateWaterListToIdx(waterIdx); }
+
+// ============================================
+// SLIDES
+// ============================================
+function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById('slide-' + n)?.classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === n-1));
+    document.getElementById('dot-label').textContent = `${n}/${total} ${LABELS[n-1]}`;
+    setTimeout(() => {
+        if(n === 3 && mapPort) { mapPort.invalidateSize(); mapPort.setView([1.5, 104.0], 7); highlightPortOnMap(portIdx); }
+        if(n === 4 && mapSea) { mapSea.invalidateSize(); mapSea.fitBounds(KEPRI_BOUNDS); setTimeout(() => highlightWaterOnMap(waterIdx), 300); }
+    }, 100);
+    if(n === 5) updateRadar();
+    if(n === 6) updateModel();
+    if(n === 7) { const sat = document.getElementById('sat-img'); if(sat) sat.src = 'https://inderaja.bmkg.go.id/IMAGE/HIMA/H08_EH_Kepri.png?' + Date.now(); }
+}
+
+function nextSlide() { if(isPaused) return; current = current >= total ? 1 : current + 1; showSlide(current); }
+function goNextSlide() { current = current >= total ? 1 : current + 1; showSlide(current); resetTimer(); }
+function prevSlide() { current = current <= 1 ? total : current - 1; showSlide(current); resetTimer(); }
+function goSlide(n) { current = n; showSlide(n); resetTimer(); }
+function resetTimer() { clearInterval(timer); timer = setInterval(nextSlide, slideSpeed); }
+
+function togglePause() { isPaused = !isPaused; const btn = document.getElementById('btn-pause'), ind = document.getElementById('pause-indicator'); if(isPaused) { btn?.classList.add('active'); if(btn) btn.innerHTML = '<i class="fas fa-play"></i>'; ind?.classList.add('show'); } else { btn?.classList.remove('active'); if(btn) btn.innerHTML = '<i class="fas fa-pause"></i>'; ind?.classList.remove('show'); } }
+
+function zoomContent(factor) { contentZoom *= factor; contentZoom = Math.max(0.7, Math.min(1.5, contentZoom)); const c = document.getElementById('scalable-content'); c.style.transform = `scale(${contentZoom})`; c.style.width = (100/contentZoom) + '%'; c.style.height = (100/contentZoom) + '%'; }
+
+function openModal() { document.getElementById('modal').style.display = 'flex'; }
+function saveSettings() { slideSpeed = document.getElementById('inp-speed').value * 1000; AUTO_REFRESH_INTERVAL = document.getElementById('inp-refresh').value * 60 * 1000; WIND_THRESHOLD = parseInt(document.getElementById('inp-wind-threshold').value); resetTimer(); startRefreshTimer(); document.getElementById('modal').style.display = 'none'; }
+
+// ============================================
+// INIT
+// ============================================
+async function init() {
+    updateClock(); setInterval(updateClock, 1000);
+    initMaps();
+    await loadData();
+    showSlide(1);
+    timer = setInterval(nextSlide, slideSpeed);
+    startRefreshTimer();
+    setInterval(animateForecast, 3000);
+    setInterval(animatePortList, 4000);
+    setInterval(animateWaterList, 5000);
+    setInterval(() => { if(current === 6) { const ms = ['swh', 'ws', 'csd']; modelIdx = (modelIdx+1)%3; currentModel = ms[modelIdx]; updateModel(); } }, 5000);
+    setInterval(loadAWSData, 60000);
+}
+
+document.getElementById('modal')?.addEventListener('click', function(e) { if(e.target === this) this.style.display = 'none'; });
+window.addEventListener('resize', () => { if(mapPort) mapPort.invalidateSize(); if(mapSea) mapSea.invalidateSize(); });
+window.onload = init;
+</script>
+</body>
+</html>
