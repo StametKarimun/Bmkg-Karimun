@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Cuaca Maritim - Posko Nataru 2025</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0277bd;
+            --primary-dark: #01579b;
+            --secondary: #00838f;
+            --accent: #ff9800;
+            --danger: #e53935;
+            --success: #43a047;
+            --highlight-color: #ff1744;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b3a4b 50%, #006064 100%);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .display-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .scalable-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transform-origin: top left;
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px;
+            min-height: 60px;
+            background: linear-gradient(90deg, #01579b, #0277bd, #0288d1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand img { height: 42px; }
+        .brand h1 { font-family: 'Oswald'; font-size: 1.3rem; color: white; text-transform: uppercase; }
+        .brand h2 { font-size: 0.8rem; color: rgba(255,255,255,0.9); font-weight: 400; }
+
+        .badge-posko {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            padding: 8px 25px;
+            border-radius: 25px;
+            font-family: 'Oswald';
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .header-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-badge.refresh { background: rgba(33,150,243,0.9); color: white; }
+        .status-badge.data { background: rgba(76,175,80,0.9); color: white; }
+        .status-badge.updating { background: rgba(255,152,0,0.9); color: white; }
+        .status-badge.error { background: rgba(244,67,54,0.9); color: white; }
+
+        .time-box { text-align: right; color: white; }
+        .clock { font-family: 'Rajdhani'; font-size: 2.2rem; font-weight: 700; }
+        .date { font-size: 0.85rem; }
+
+        main { 
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            padding: 8px;
+            gap: 8px;
+        }
+        .slide.active { display: grid; }
+
+        .slide-aws { grid-template-columns: 1fr; }
+        .slide-forecast { grid-template-columns: 1fr; }
+        .slide-two-col { grid-template-columns: 38% 62%; }
+        .slide-full { grid-template-columns: 1fr; }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-head {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-head h3 { font-family: 'Oswald'; font-size: 1.1rem; }
+
+        .panel-body { flex: 1; position: relative; min-height: 0; overflow: hidden; }
+        .map-wrap { width: 100%; height: 100%; position: absolute; }
+
+        /* AWS FULL PANEL */
+        .aws-full-panel {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 12px;
+            border: 4px solid var(--primary);
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 15px;
+            height: 100%;
+        }
+        
+        .aws-left {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .aws-header {
+            background: linear-gradient(90deg, #ff9800, #f57c00);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .aws-header h3 {
+            font-family: 'Oswald';
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+        .aws-header .subtitle {
+            font-size: 0.75rem;
+            opacity: 0.95;
+        }
+        
+        .aws-weather-main {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            flex: 1;
+        }
+        
+        .aws-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4caf50;
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        .aws-badge.offline { background: #f44336; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .aws-weather-main .weather-icon { font-size: 5rem; margin-bottom: 10px; }
+        .aws-weather-main .weather-icon.cerah { color: #FFD600; }
+        .aws-weather-main .weather-icon.berawan { color: #78909c; }
+        .aws-weather-main .weather-icon.hujan { color: #42a5f5; }
+        
+        .aws-weather-main .temp {
+            font-family: 'Rajdhani';
+            font-size: 4rem;
+            font-weight: 700;
+            color: #e65100;
+            line-height: 1;
+        }
+        .aws-weather-main .desc {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-top: 5px;
+        }
+        .aws-weather-main .timestamp {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* Wind Compass */
+        .wind-compass-container {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .wind-compass-title {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .wind-compass {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+            position: relative;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            border-radius: 50%;
+            padding: 10px;
+        }
+        .compass-inner {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 50%;
+            position: relative;
+        }
+        .compass-directions {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #1a237e;
+        }
+        .compass-directions span {
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+        .compass-directions .n { top: 12%; left: 50%; }
+        .compass-directions .s { bottom: 5%; left: 50%; transform: translate(-50%, 0); }
+        .compass-directions .e { right: 5%; top: 50%; transform: translate(0, -50%); }
+        .compass-directions .w { left: 12%; top: 50%; transform: translate(0, -50%); }
+        
+        .compass-arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 60%;
+            transform-origin: center bottom;
+            transform: translate(-50%, -100%) rotate(0deg);
+            transition: transform 0.5s ease;
+        }
+        .compass-arrow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 25px solid #e53935;
+        }
+        .compass-arrow::after {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: calc(100% - 25px);
+            background: #e53935;
+            border-radius: 0 0 3px 3px;
+        }
+        .compass-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px;
+            height: 18px;
+            background: #1a237e;
+            border-radius: 50%;
+            border: 3px solid white;
+            z-index: 10;
+        }
+        
+        .wind-info {
+            text-align: center;
+            margin-top: 12px;
+        }
+        .wind-speed {
+            font-family: 'Rajdhani';
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+        .wind-dir-text {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .aws-right {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .aws-data-grid-large {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            flex: 1;
+        }
+        .aws-data-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .aws-data-card .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        .aws-data-card .label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .aws-data-card .value {
+            font-family: 'Rajdhani';
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+        .aws-data-card.rain .icon { color: #42a5f5; }
+        .aws-data-card.rain .value { color: #1565c0; }
+        .aws-data-card.water .icon { color: #00838f; }
+        .aws-data-card.water .value { color: #006064; }
+        
+        .wave-status-bar {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+        
+        .bg-tenang { background: linear-gradient(135deg, #2196F3, #1976d2) !important; }
+        .bg-rendah { background: linear-gradient(135deg, #4CAF50, #388e3c) !important; }
+        .bg-sedang { background: linear-gradient(135deg, #FF9800, #f57c00) !important; }
+        .bg-tinggi { background: linear-gradient(135deg, #f44336, #d32f2f) !important; }
+
+        /* FORECAST PANEL */
+        .forecast-full-panel {
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .forecast-header {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px 20px;
+            font-family: 'Oswald';
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .forecast-grid-large {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            padding: 15px;
+            flex: 1;
+        }
+
+        .fc-card-large {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            border: 3px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .fc-card-large.active {
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .fc-card-large .fc-time { font-weight: 900; font-size: 1.8rem; line-height: 1; }
+        .fc-card-large .fc-date { font-size: 1rem; opacity: 0.9; font-weight: 600; }
+        .fc-card-large .fc-icon { font-size: 3rem; margin: 10px 0; }
+        .fc-card-large .fc-icon.cerah { color: #FFD600; }
+        .fc-card-large .fc-icon.berawan { color: #78909c; }
+        .fc-card-large .fc-icon.hujan { color: #42a5f5; }
+        .fc-card-large.active .fc-icon { color: white; }
+        .fc-card-large .fc-temp { font-weight: 900; font-size: 1.8rem; color: #e65100; }
+        .fc-card-large.active .fc-temp { color: #FFD600; }
+        .fc-card-large .fc-wave { font-size: 1.1rem; padding: 6px 10px; border-radius: 8px; color: white; font-weight: 800; }
+        .fc-card-large .fc-wind { font-size: 1rem; font-weight: 700; color: #333; margin-top: 5px; }
+        .fc-card-large.active .fc-wind { color: rgba(255,255,255,0.95); }
+        .fc-card-large .fc-wind-dir { font-size: 0.9rem; color: #666; font-weight: 600; }
+        .fc-card-large.active .fc-wind-dir { color: rgba(255,255,255,0.85); }
+        .fc-card-large .fc-extra { font-size: 0.9rem; color: #555; font-weight: 600; margin-top: 5px; }
+        .fc-card-large.active .fc-extra { color: rgba(255,255,255,0.9); }
+
+        /* LIST SECTIONS */
+        .list-section {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .list-header {
+            background: linear-gradient(90deg, #00695c, #004d40);
+            color: white;
+            padding: 10px 15px;
+            font-family: 'Oswald';
+            font-size: 1.05rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-controls { display: flex; gap: 5px; }
+        .list-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); color: white; cursor: pointer; }
+        .list-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .list-scroll { flex: 1; overflow: hidden; position: relative; }
+        .list-track { position: absolute; width: 100%; transition: transform 0.5s ease; }
+
+        .port-card {
+            padding: 12px 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .port-card:nth-child(even) { background: #f8f9fa; }
+        .port-card.active {
+            background: linear-gradient(90deg, #ffebee, #ffcdd2) !important;
+            border-left: 8px solid var(--highlight-color);
+        }
+
+        .port-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .port-name { font-weight: 900; font-size: 1.1rem; color: #0d47a1; }
+        .port-time { font-size: 0.85rem; color: white; background: var(--primary); padding: 4px 12px; border-radius: 12px; font-weight: 700; }
+
+        .port-data-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 8px; }
+        .port-data-item { text-align: center; padding: 6px 4px; background: #f5f5f5; border-radius: 6px; }
+        .port-data-item .label { font-size: 0.7rem; color: #666; font-weight: 600; }
+        .port-data-item .value { font-size: 0.85rem; font-weight: 800; color: var(--primary-dark); }
+        .port-data-item.wave-badge .value { color: white; padding: 2px 8px; border-radius: 6px; }
+
+        .port-forecast-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; background: #e3f2fd; padding: 8px; border-radius: 6px; }
+        .port-fc-item { text-align: center; padding: 4px 2px; background: white; border-radius: 4px; font-size: 0.75rem; }
+        .port-fc-item.current { background: var(--primary); color: white; font-weight: 700; }
+        .port-fc-item .fc-date-small { font-size: 0.65rem; color: #666; }
+        .port-fc-item.current .fc-date-small { color: rgba(255,255,255,0.85); }
+
+        /* WATER CARDS */
+        .water-card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin: 8px 10px;
+            border-left: 8px solid #2196F3;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        .water-card.active {
+            border-left-color: var(--highlight-color) !important;
+            box-shadow: 0 0 0 3px var(--highlight-color);
+            background: #ffebee;
+        }
+
+        .water-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .water-name { font-weight: 900; font-size: 1.2rem; color: #0d47a1; }
+        .water-code { font-size: 0.9rem; background: #e0e0e0; padding: 4px 10px; border-radius: 6px; font-weight: 700; }
+
+        .water-info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; font-weight: 600; padding: 6px 10px; background: #f5f5f5; border-radius: 6px; }
+
+        .water-forecast-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .wf-day { text-align: center; padding: 10px 6px; background: #f5f5f5; border-radius: 8px; }
+        .wf-day.today { color: white; }
+        .wf-label { font-weight: 800; font-size: 0.95rem; }
+        .wf-icon { font-size: 1.5rem; margin: 4px 0; }
+        .wf-icon.cerah { color: #FFD600; }
+        .wf-icon.berawan { color: #78909c; }
+        .wf-icon.hujan { color: #42a5f5; }
+        .wf-day.today .wf-icon { color: white; }
+        .wf-wind { font-size: 0.85rem; font-weight: 700; }
+        .wf-wind-dir { font-size: 0.8rem; color: #666; }
+        .wf-day.today .wf-wind-dir { color: rgba(255,255,255,0.85); }
+        .wf-wave { font-weight: 900; font-size: 1.1rem; }
+        .wf-cat { font-size: 0.85rem; font-weight: 600; }
+
+        /* NOWCAST PANEL */
+        .nowcast-panel {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-radius: 10px;
+            padding: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .nowcast-title { 
+            text-align: center; 
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+        .nowcast-title h2 { font-family: 'Oswald'; font-size: 1.4rem; color: var(--danger); }
+
+        .nowcast-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .nowcast-box { 
+            background: white; 
+            border-radius: 10px; 
+            padding: 12px; 
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            min-height: 0;
+        }
+        .nowcast-box.warning { border-left: 6px solid var(--danger); }
+        .nowcast-box.maritime { border-left: 6px solid var(--accent); }
+        .nowcast-box.safety { border-left: 6px solid var(--success); }
+        .nowcast-box.info { border-left: 6px solid var(--primary); }
+
+        .nowcast-box-title { 
+            font-family: 'Oswald'; 
+            font-size: 1rem; 
+            margin-bottom: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .nowcast-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            font-size: 0.85rem; 
+            line-height: 1.4;
+            min-height: 0;
+        }
+        
+        .warning-text {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .area-list { display: flex; flex-wrap: wrap; gap: 5px; }
+        .area-tag { padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; }
+        .area-tag.sedang { background: #fff3e0; color: #e65100; }
+        .area-tag.tinggi { background: #ffebee; color: #c62828; }
+
+        .ship-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .ship-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #f5f5f5; border-radius: 6px; font-size: 0.8rem; }
+        .ship-item i { font-size: 1.1rem; }
+
+        /* IMAGE PANELS */
+        .img-panel-full {
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .img-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 15px;
+            position: relative;
+            min-height: 0;
+        }
+
+        .img-content img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; }
+
+        .img-footer {
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .model-selector { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            display: flex; 
+            gap: 8px; 
+            z-index: 50;
+        }
+        .model-btn { 
+            padding: 8px 14px; 
+            background: rgba(255,255,255,0.9); 
+            border: 2px solid transparent; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 0.85rem; 
+            color: var(--primary-dark);
+        }
+        .model-btn.active { background: var(--primary); color: white; border-color: var(--accent); }
+
+        .radar-legend {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            max-width: 280px;
+        }
+        .radar-legend h4 {
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 5px;
+        }
+        .radar-legend p {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        /* ALARM */
+        .alarm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9000;
+            display: none;
+        }
+        .alarm-overlay.active {
+            display: block;
+            animation: alarmFlash 0.5s infinite;
+        }
+        @keyframes alarmFlash {
+            0%, 100% { background: transparent; }
+            50% { background: rgba(244, 67, 54, 0.3); }
+        }
+        
+        .alarm-banner {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #d32f2f, #f44336);
+            color: white;
+            padding: 15px 35px;
+            border-radius: 30px;
+            font-family: 'Oswald';
+            font-size: 1.3rem;
+            z-index: 9500;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 8px 35px rgba(244,67,54,0.6);
+        }
+        .alarm-banner.active {
+            display: flex;
+        }
+        
+        .mute-btn {
+            background: rgba(255,255,255,0.25);
+            border: none;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            pointer-events: auto;
+        }
+
+        /* NAVIGATION */
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 70px; background: rgba(255,255,255,0.25); border: none; cursor: pointer; z-index: 100; color: white; font-size: 1.1rem; }
+        .nav-btn:hover { background: rgba(255,255,255,0.4); }
+        .nav-btn.left { left: 0; border-radius: 0 10px 10px 0; }
+        .nav-btn.right { right: 0; border-radius: 10px 0 0 10px; }
+
+        .dots { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(0,0,0,0.75); padding: 6px 15px; border-radius: 20px; z-index: 100; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; }
+        .dot.active { background: var(--accent); transform: scale(1.2); }
+        .dot-label { color: white; font-size: 0.85rem; margin-left: 10px; font-weight: 600; }
+
+        footer { 
+            height: 36px;
+            min-height: 36px;
+            background: linear-gradient(90deg, #1a237e, #263238); 
+            display: flex; 
+            align-items: center;
+        }
+        .ticker-label { background: var(--danger); color: white; padding: 0 15px; height: 100%; display: flex; align-items: center; font-family: 'Oswald'; font-size: 0.9rem; }
+        .ticker-wrap { flex: 1; overflow: hidden; white-space: nowrap; }
+        .ticker-text { display: inline-block; padding-left: 100%; animation: ticker 60s linear infinite; color: white; font-size: 0.95rem; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+        .legend { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.97); padding: 8px 10px; border-radius: 8px; font-size: 0.75rem; z-index: 400; box-shadow: 0 3px 12px rgba(0,0,0,0.25); }
+        .legend-title { font-weight: 800; margin-bottom: 4px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; margin: 2px 0; font-weight: 600; }
+        .legend-color { width: 20px; height: 8px; border-radius: 2px; }
+
+        .control-panel { 
+            position: fixed; 
+            bottom: 42px; 
+            right: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            z-index: 500;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .control-panel:hover { opacity: 1; }
+        .ctrl-btn { 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.7); 
+            backdrop-filter: blur(8px);
+            border: 2px solid var(--primary); 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 0.9rem; 
+            color: var(--primary);
+        }
+        .ctrl-btn:hover { background: var(--primary); color: white; }
+        .ctrl-btn.active { background: var(--danger); border-color: var(--danger); color: white; }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 420px; max-height: 85vh; overflow-y: auto; }
+        .modal-content h3 { margin-bottom: 15px; font-family: 'Oswald'; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; }
+        .form-group input[type="range"] { width: 100%; }
+        .val-display { text-align: center; font-weight: 700; color: var(--primary); font-size: 0.85rem; }
+        .btn-save { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+        .section-title { font-weight: 700; color: var(--primary-dark); margin: 15px 0 10px; padding-bottom: 5px; border-bottom: 2px solid #e0e0e0; font-size: 0.95rem; }
+
+        .weather-marker { background: white; border-radius: 50%; padding: 6px; box-shadow: 0 3px 12px rgba(0,0,0,0.4); border: 3px solid; }
+        .weather-marker i { font-size: 1.2rem; }
+        .weather-marker.highlight { border-color: var(--highlight-color) !important; animation: markerPulse 0.8s infinite; }
+        @keyframes markerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+        .pause-indicator { position: fixed; top: 100px; left: 15px; background: rgba(244,67,54,0.9); color: white; padding: 6px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 700; z-index: 500; display: none; }
+        .pause-indicator.show { display: flex; align-items: center; gap: 6px; }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-overlay.hidden { display: none; }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e0e0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            margin-top: 15px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="display-container">
+    <div class="scalable-content" id="scalable-content">
+        <header>
+            <div class="brand">
+                <img src="https://cdn.bmkg.go.id/Web/Logo-BMKG-new.png" alt="BMKG">
+                <div>
+                    <h1>Stasiun Meteorologi Raja Haji Abdullah</h1>
+                    <h2>Tanjung Balai Karimun - Kepulauan Riau</h2>
+                </div>
+            </div>
+            
+            <div class="header-status">
+                <div class="status-badge refresh" id="refresh-badge"><i class="fas fa-sync-alt"></i> <span id="refresh-timer">5:00</span></div>
+                <div class="status-badge data" id="data-badge"><i class="fas fa-database"></i> Data OK</div>
+                <div class="status-badge updating" id="updating-badge" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Memperbarui...</div>
+            </div>
+            
+            <div class="badge-posko"><i class="fas fa-ship"></i> POSKO NATARU 2025</div>
+            <div class="time-box">
+                <div class="clock" id="clock">00:00:00</div>
+                <div class="date" id="date">Loading...</div>
+            </div>
+        </header>
+
+        <main>
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Memuat data dari BMKG...</div>
+            </div>
+            
+            <button class="nav-btn left" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-btn right" onclick="goNextSlide()"><i class="fas fa-chevron-right"></i></button>
+
+            <!-- SLIDE 1: AWS -->
+            <div class="slide slide-aws active" id="slide-1">
+                <div class="aws-full-panel">
+                    <div class="aws-left">
+                        <div class="aws-header">
+                            <h3><i class="fas fa-broadcast-tower"></i> CUACA REALTIME</h3>
+                            <div class="subtitle">AWS Maritim LANAL Tanjung Balai Karimun</div>
+                        </div>
+                        
+                        <div class="aws-weather-main">
+                            <div class="aws-badge" id="aws-badge">AWS LIVE</div>
+                            <div class="weather-icon berawan" id="aws-icon"><i class="fas fa-cloud"></i></div>
+                            <div class="temp" id="aws-temp">--°C</div>
+                            <div class="desc" id="aws-desc">Memuat...</div>
+                            <div class="timestamp" id="aws-timestamp">Update: --:--</div>
+                        </div>
+                        
+                        <div class="wind-compass-container">
+                            <div class="wind-compass-title"><i class="fas fa-wind"></i> Arah & Kecepatan Angin</div>
+                            <div class="wind-compass">
+                                <div class="compass-inner">
+                                    <div class="compass-directions">
+                                        <span class="n">U</span>
+                                        <span class="s">S</span>
+                                        <span class="e">T</span>
+                                        <span class="w">B</span>
+                                    </div>
+                                    <div class="compass-arrow" id="compass-arrow"></div>
+                                    <div class="compass-center"></div>
+                                </div>
+                            </div>
+                            <div class="wind-info">
+                                <div class="wind-speed" id="aws-wind-speed">-- kt</div>
+                                <div class="wind-dir-text" id="aws-wind-dir">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="aws-right">
+                        <div class="aws-data-grid-large">
+                            <div class="aws-data-card"><i class="fas fa-tint icon"></i><div class="label">Kelembaban</div><div class="value" id="aws-rh">--%</div></div>
+                            <div class="aws-data-card"><i class="fas fa-tachometer-alt icon"></i><div class="label">Tekanan Udara</div><div class="value" id="aws-pressure">-- hPa</div></div>
+                            <div class="aws-data-card rain"><i class="fas fa-cloud-rain icon"></i><div class="label">Curah Hujan</div><div class="value" id="aws-rain">-- mm</div></div>
+                            <div class="aws-data-card"><i class="fas fa-thermometer-half icon"></i><div class="label">Suhu Air Laut</div><div class="value" id="aws-watertemp">--°C</div></div>
+                            <div class="aws-data-card water"><i class="fas fa-water icon"></i><div class="label">Tinggi Gelombang</div><div class="value" id="aws-wave">-- m</div></div>
+                            <div class="aws-data-card water"><i class="fas fa-ruler-vertical icon"></i><div class="label">Pasang Surut</div><div class="value" id="aws-waterlevel">-- m</div></div>
+                            <div class="aws-data-card"><i class="fas fa-wind icon"></i><div class="label">Kec. Angin</div><div class="value" id="aws-wind-ms">-- m/s</div></div>
+                            <div class="aws-data-card"><i class="fas fa-compass icon"></i><div class="label">Arah Angin</div><div class="value" id="aws-wind-deg">--</div></div>
+                        </div>
+                        <div class="wave-status-bar bg-tenang" id="aws-bar"><i class="fas fa-ship"></i> KONDISI LAUT: MEMUAT...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: FORECAST -->
+            <div class="slide slide-forecast" id="slide-2">
+                <div class="forecast-full-panel">
+                    <div class="forecast-header">
+                        <span><i class="fas fa-clock"></i> PRAKIRAAN CUACA PER 3 JAM - PEL. INTERNASIONAL TANJUNG BALAI KARIMUN</span>
+                        <span id="fc-update-time">Update: --:--</span>
+                    </div>
+                    <div class="forecast-grid-large" id="fc-grid"></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: Ports -->
+            <div class="slide slide-two-col" id="slide-3">
+                <div class="panel">
+                    <div class="panel-head"><h3><i class="fas fa-anchor"></i> Peta Pelabuhan</h3><span id="port-count">30 Pelabuhan</span></div>
+                    <div class="panel-body">
+                        <div class="map-wrap" id="map-port"></div>
+                        <div class="legend">
+                            <div class="legend-title">Tinggi Gelombang:</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#2196F3"></div>Tenang (0-0.5m)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#4CAF50"></div>Rendah (0.5-1.25m)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#FF9800"></div>Sedang (1.25-2.5m)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#f44336"></div>Tinggi (&gt;2.5m)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <div class="list-header">
+                        <span><i class="fas fa-list"></i> PRAKIRAAN PELABUHAN</span>
+                        <span id="update-time">--:
